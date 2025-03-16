@@ -1,7 +1,9 @@
 import input.TerminalReader;
 import output.TerminalWriter;
-import terminal.Terminal;
-import terminal.WindowsTerminal;
+import common.infrastructure.terminal.Terminal;
+import common.infrastructure.terminal.WindowsTerminal;
+
+import java.io.IOException;
 
 public class Application {
     private static TerminalReader terminalReader;
@@ -13,7 +15,19 @@ public class Application {
     }
 
     private static void run() {
+        init();
 
+        try {
+            while (true) {
+                var res = terminalReader.read();
+                if (!res) break;
+                terminalWriter.write();
+            }
+        } catch (IllegalArgumentException | IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        exit();
     }
 
     private static void init() {

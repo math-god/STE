@@ -10,6 +10,4 @@ public interface Context {
     void attachObserver(ContextObserver observer);
 
     void detachObserver(ContextObserver observer);
-
-    void notifyObservers(ContextInfoModel info);
 }
