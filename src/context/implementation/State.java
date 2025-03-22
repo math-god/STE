@@ -1,10 +1,10 @@
-package state;
+package context.implementation;
+
+import common.utility.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
-
-import common.escape.EscapeReplaceCode;
 
 public class State {
 
@@ -12,14 +12,14 @@ public class State {
     private Integer cursorColumnIndex = 0;
 
     private final LinkedList<LinkedList<Integer>> storage;
-    private final Collection<Integer> changedStorageRows = new ArrayList<>();
+    private final Collection<Integer> changedStorageRowIndexes = new ArrayList<>();
 
     {
         storage = new LinkedList<>();
         storage.add(new LinkedList<>());
     }
 
-    public void addChar(Integer ch) {
+    void addChar(Integer ch) {
         var row = storage.get(cursorRowIndex);
 
         if (row.size() - 1 < cursorColumnIndex) {
@@ -28,48 +28,61 @@ public class State {
             row.add(cursorColumnIndex, ch);
         }
 
-        changedStorageRows.add(cursorRowIndex);
+        changedStorageRowIndexes.add(cursorRowIndex);
     }
 
-    public void moveCursorRight() {
+    void deleteCharAtCursor() {
+        var row = storage.get(cursorRowIndex);
+        if (CommonUtils.getElementOrNull(row, cursorColumnIndex) == null) return;
+
+        row.remove((int) cursorColumnIndex);
+        changedStorageRowIndexes.add(cursorRowIndex);
+    }
+
+    void moveCursorRight() {
         cursorColumnIndex++;
     }
 
-    public Collection<Integer> getStorageRow(Integer rowIndex) {
+    void moveCursorLeft() {
+        if (cursorColumnIndex == 0) return;
+
+        cursorColumnIndex--;
+    }
+
+    Collection<Integer> getStorageRow(Integer rowIndex) {
         return storage.get(rowIndex);
     }
 
-    public Collection<Collection<Integer>> getStorageRows(Collection<Integer> rowIndexes) {
+    Collection<Collection<Integer>> getStorageRows(Collection<Integer> rowIndexes) {
         var rows = new ArrayList<Collection<Integer>>();
         rowIndexes.forEach(m -> rows.add(storage.get(m)));
 
         return rows;
     }
 
-    public Collection<Integer> getChangedStorageRowsWithClearing() {
-        var changedRows = new ArrayList<>(changedStorageRows);
-        changedStorageRows.clear();
+    Collection<Integer> getChangedStorageRowIndexesWithClearing() {
+        var changedRows = new ArrayList<>(changedStorageRowIndexes);
+        changedStorageRowIndexes.clear();
 
         return changedRows;
     }
 
-    public Integer getCursorRowIndex() {
+    Integer getCursorRowIndex() {
         return cursorRowIndex;
     }
 
-    public Integer getCursorColumnIndex() {
+    Integer getCursorColumnIndex() {
         return cursorColumnIndex;
     }
 
-    public void setCursorRowIndex(Integer row) {
+    void setCursorRowIndex(Integer row) {
         if (row < 0) throw new IllegalArgumentException("Bad state: cursor row cant be less than 0");
         this.cursorRowIndex = row;
     }
 
-    public void setCursorColumnIndex(Integer column) {
+    void setCursorColumnIndex(Integer column) {
         if (column < 0) throw new IllegalArgumentException("Bad state: cursor column cant be less than 0");
         this.cursorColumnIndex = column;
     }
-
 
 }

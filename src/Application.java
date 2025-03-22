@@ -1,11 +1,11 @@
 import context.Context;
 import context.ContextType;
-import context.concrete.editor.Editor;
+import context.implementation.Editor;
 import input.TerminalReader;
 import output.TerminalWriter;
 import common.infrastructure.terminal.Terminal;
 import common.infrastructure.terminal.WindowsTerminal;
-import state.State;
+import context.implementation.State;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -32,7 +32,9 @@ public class Application {
                 terminalWriter.write();
             }
         } catch (IllegalArgumentException | IOException ex) {
-            System.out.println(ex.getMessage());
+            eraseScreen();
+            setCursorAtStart();
+            System.out.print(ex.getMessage());
         }
 
         exit();

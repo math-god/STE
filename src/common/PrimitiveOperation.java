@@ -2,6 +2,7 @@ package common;
 
 public enum PrimitiveOperation {
     ADD_CHAR(Group.TEXT, Arity.UNARY),
+    DELETE_CHAR(Group.TEXT, Arity.NUllARY),
     CURSOR_UP(Group.CURSOR, Arity.NUllARY),
     CURSOR_DOWN(Group.CURSOR, Arity.NUllARY),
     CURSOR_LEFT(Group.CURSOR, Arity.NUllARY),

@@ -1,4 +1,4 @@
-package context.concrete.editor;
+package context.implementation;
 
 import common.PrimitiveOperation;
 import common.infrastructure.functional.NullaryModifier;
@@ -9,12 +9,11 @@ import context.dto.ContextCursorNotificationModel;
 import context.dto.ContextRowNotificationModel;
 import context.dto.RowContentModel;
 import log.FileLogger;
-import state.State;
 
 import java.util.*;
 import java.util.logging.Logger;
 
-import static context.concrete.editor.EditorUtils.*;
+import static context.implementation.utils.EditorUtils.*;
 
 public class Editor implements Context {
 
@@ -45,7 +44,6 @@ public class Editor implements Context {
 
                 modifier.modify();
             }
-
             if (operation.getArity() == PrimitiveOperation.Arity.UNARY) {
                 var modifier = UNARY_STATE_MODIFIER_MAP.get(operation);
                 if (modifier == null) {
@@ -53,6 +51,9 @@ public class Editor implements Context {
                 }
 
                 modifier.modify(ch);
+            }
+            if (operation.getArity() == PrimitiveOperation.Arity.NONE) {
+                throw new IllegalArgumentException("Editor cant find any modifier for: " + ch);
             }
 
             if (operation.getGroup() == PrimitiveOperation.Group.TEXT) {
@@ -78,6 +79,8 @@ public class Editor implements Context {
         var initMap = new HashMap<PrimitiveOperation, NullaryModifier>();
 
         initMap.put(PrimitiveOperation.CURSOR_RIGHT, state::moveCursorRight);
+        initMap.put(PrimitiveOperation.CURSOR_LEFT, state::moveCursorLeft);
+        initMap.put(PrimitiveOperation.DELETE_CHAR, state::deleteCharAtCursor);
 
         return initMap;
     }
@@ -93,7 +96,7 @@ public class Editor implements Context {
     private void notifyTextChanged(PrimitiveOperation action) {
         var info = new ContextRowNotificationModel();
 
-        var changedRowsIndexes = state.getChangedStorageRowsWithClearing();
+        var changedRowsIndexes = state.getChangedStorageRowIndexesWithClearing();
         var rowsContent = new ArrayList<RowContentModel>();
 
         for (var rowIndex : changedRowsIndexes) {

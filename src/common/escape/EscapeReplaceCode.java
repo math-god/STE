@@ -1,7 +1,5 @@
 package common.escape;
 
-import java.util.Arrays;
-
 public enum EscapeReplaceCode {
     DEL(1000),
     LEFT_ARROW(1001),
