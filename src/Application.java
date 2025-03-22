@@ -1,6 +1,6 @@
 import context.Context;
 import context.ContextType;
-import context.concrete.Editor;
+import context.concrete.editor.Editor;
 import input.TerminalReader;
 import output.TerminalWriter;
 import common.infrastructure.terminal.Terminal;

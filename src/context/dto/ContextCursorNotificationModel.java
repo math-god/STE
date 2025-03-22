@@ -1,6 +1,6 @@
 package context.dto;
 
-public class ContextCursorInfoModel extends ContextInfoModel {
+public class ContextCursorNotificationModel extends ContextNotificationModel {
     private Integer cursorRowIndex;
     private Integer cursorColumnIndex;
 

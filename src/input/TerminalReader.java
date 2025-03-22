@@ -39,21 +39,7 @@ public class TerminalReader {
             key = replacer.getReplace();
         }
 
-        handle(key);
+        currentContext.input(key);
         return true;
-    }
-
-    private void handle(Integer ch) {
-        if (isTextInput(ch)) {
-            currentContext.input(ch);
-            currentContext.input(EscapeReplaceCode.RIGHT_ARROW.getReplace());
-            return;
-        }
-
-        throw new IllegalArgumentException("Unknown character: (" + ch + ")");
-    }
-
-    private Boolean isTextInput(Integer ch) {
-        return ch >= FIRST_PRINTED_CHAR && ch <= LAST_PRINTED_CHAR;
     }
 }

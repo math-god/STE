@@ -1,7 +1,7 @@
 package context;
 
-import context.dto.ContextInfoModel;
+import context.dto.ContextNotificationModel;
 
 public interface ContextObserver {
-    void setInfo(ContextInfoModel info);
+    void setInfo(ContextNotificationModel info);
 }

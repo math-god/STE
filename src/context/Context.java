@@ -1,8 +1,5 @@
 package context;
 
-import context.dto.ContextInfoModel;
-import state.State;
-
 public interface Context {
 
     void input(Integer ch);

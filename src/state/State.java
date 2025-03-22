@@ -31,12 +31,8 @@ public class State {
         changedStorageRows.add(cursorRowIndex);
     }
 
-    public void moveCursor(Integer ch) {
-        var escapeReplaceElement = EscapeReplaceCode.get(ch);
-
-        switch (escapeReplaceElement) {
-            case RIGHT_ARROW -> cursorColumnIndex++;
-        }
+    public void moveCursorRight() {
+        cursorColumnIndex++;
     }
 
     public Collection<Integer> getStorageRow(Integer rowIndex) {
