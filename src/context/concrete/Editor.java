@@ -3,13 +3,15 @@ package context.concrete;
 import common.InputAction;
 import context.Context;
 import context.ContextObserver;
+import context.dto.ContextCursorInfoModel;
 import context.dto.ContextRowInfoModel;
 import context.dto.RowContentModel;
-import output.TerminalWriter;
+import log.FileLogger;
 import state.State;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public class Editor implements Context {
 
@@ -17,10 +19,11 @@ public class Editor implements Context {
 
     private final Collection<ContextObserver> OBSERVERS;
     private final Map<InputAction, Consumer<Integer>> STATE_MODIFIER_MAP;
+    private final Logger logger = FileLogger.getFileLogger(Editor.class.getName(), "editor-log.txt");
 
     public Editor(State state) {
         this.state = state;
-        OBSERVERS = initDefaultObserver();
+        OBSERVERS = new HashSet<>();
         STATE_MODIFIER_MAP = initStateModifiers();
     }
 
@@ -55,12 +58,9 @@ public class Editor implements Context {
         var initMap = new HashMap<InputAction, Consumer<Integer>>();
 
         initMap.put(InputAction.INPUT_CHAR, state::addChar);
+        initMap.put(InputAction.CURSOR_RIGHT, state::moveCursor);
 
         return initMap;
-    }
-
-    private Collection<ContextObserver> initDefaultObserver() {
-        return new ArrayList<>(List.of(new TerminalWriter()));
     }
 
     private void notifyTextChanged(InputAction action) {
@@ -75,17 +75,24 @@ public class Editor implements Context {
 
         info.setAction(action);
         info.setRowsContent(rowsContent);
+
         OBSERVERS.forEach(m -> m.setInfo(info));
     }
 
     private void notifyCursorChanged(InputAction action) {
+        var info = new ContextCursorInfoModel();
 
+        info.setAction(action);
+        info.setCursorColumnIndex(state.getCursorColumnIndex());
+        info.setCursorRowIndex(state.getCursorRowIndex());
+
+        OBSERVERS.forEach(m -> m.setInfo(info));
     }
 
     private String storageRowToString(Collection<Integer> row) {
         StringBuilder str = new StringBuilder();
-        for (var ch : row) {
-            str.append(ch);
+        for (int ch : row) {
+            str.append((char) ch);
         }
 
         return str.toString();

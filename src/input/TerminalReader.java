@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
+import static common.infrastructure.AsciiConstant.*;
 import static common.utility.TerminalIOUtils.readKey;
 
 public class TerminalReader {
@@ -38,7 +39,21 @@ public class TerminalReader {
             key = replacer.getReplace();
         }
 
-        currentContext.input(key);
+        handle(key);
         return true;
+    }
+
+    private void handle(Integer ch) {
+        if (isTextInput(ch)) {
+            currentContext.input(ch);
+            currentContext.input(EscapeReplaceCode.RIGHT_ARROW.getReplace());
+            return;
+        }
+
+        throw new IllegalArgumentException("Unknown character: (" + ch + ")");
+    }
+
+    private Boolean isTextInput(Integer ch) {
+        return ch >= FIRST_PRINTED_CHAR && ch <= LAST_PRINTED_CHAR;
     }
 }

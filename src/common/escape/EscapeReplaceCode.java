@@ -1,5 +1,7 @@
 package common.escape;
 
+import java.util.Arrays;
+
 public enum EscapeReplaceCode {
     DEL(1000),
     LEFT_ARROW(1001),
@@ -19,5 +21,13 @@ public enum EscapeReplaceCode {
 
     public int getReplace() {
         return replace;
+    }
+
+    public static EscapeReplaceCode get(int code) {
+        for (var item : EscapeReplaceCode.values()) {
+            if (item.replace == code) return item;
+        }
+
+        throw new IllegalArgumentException("Cant get EscapeReplaceCode element by given code");
     }
 }

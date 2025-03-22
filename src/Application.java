@@ -1,9 +1,17 @@
+import context.Context;
+import context.ContextType;
+import context.concrete.Editor;
 import input.TerminalReader;
 import output.TerminalWriter;
 import common.infrastructure.terminal.Terminal;
 import common.infrastructure.terminal.WindowsTerminal;
+import state.State;
 
 import java.io.IOException;
+import java.util.HashMap;
+
+import static common.utility.TerminalIOUtils.eraseScreen;
+import static common.utility.TerminalIOUtils.setCursorAtStart;
 
 public class Application {
     private static TerminalReader terminalReader;
@@ -34,7 +42,18 @@ public class Application {
         terminal = new WindowsTerminal();
         terminal.enableRawMode();
 
+        var state = new State();
+        var contextMap = new HashMap<ContextType, Context>();
+        var editor = new Editor(state);
+        contextMap.put(ContextType.EDITOR, editor);
 
+        terminalReader = new TerminalReader(contextMap);
+        terminalWriter = new TerminalWriter();
+
+        editor.attachObserver(terminalWriter);
+
+        eraseScreen();
+        setCursorAtStart();
     }
 
     private static void exit() {
