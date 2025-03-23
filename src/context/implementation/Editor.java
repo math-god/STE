@@ -1,6 +1,9 @@
 package context.implementation;
 
+import common.Action;
 import common.PrimitiveOperation;
+import common.escape.EscapeReplaceCode;
+import common.infrastructure.AsciiConstant;
 import common.infrastructure.functional.NullaryModifier;
 import common.infrastructure.functional.UnaryModifier;
 import context.Context;
@@ -12,8 +15,6 @@ import log.FileLogger;
 
 import java.util.*;
 import java.util.logging.Logger;
-
-import static context.implementation.utils.EditorUtils.*;
 
 public class Editor implements Context {
 
@@ -75,6 +76,8 @@ public class Editor implements Context {
         OBSERVERS.remove(observer);
     }
 
+    // private
+
     private Map<PrimitiveOperation, NullaryModifier> initNullaryStateModifiers() {
         var initMap = new HashMap<PrimitiveOperation, NullaryModifier>();
 
@@ -117,5 +120,44 @@ public class Editor implements Context {
         info.setCursorRowIndex(state.getCursorRowIndex());
 
         OBSERVERS.forEach(m -> m.setInfo(info));
+    }
+
+    private String storageRowToString(Collection<Integer> row) {
+        StringBuilder str = new StringBuilder();
+        for (int ch : row) {
+            str.append((char) ch);
+        }
+
+        return str.toString();
+    }
+
+    private Action getActionByChar(Integer ch) {
+        if (ch >= AsciiConstant.FIRST_PRINTED_CHAR && ch <= AsciiConstant.LAST_PRINTED_CHAR)
+            return Action.INPUT_PRINTABLE_CHAR;
+        if (ch == AsciiConstant.BACKSPACE) return Action.BACKSPACE_DELETE;
+        if (ch == EscapeReplaceCode.DEL) return Action.DEL_DELETE;
+        if (ch == EscapeReplaceCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;
+        if (ch == EscapeReplaceCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;
+
+        return Action.NONE;
+    }
+
+    private Collection<PrimitiveOperation> getOperationsByAction(Action action) {
+        switch (action) {
+            case INPUT_PRINTABLE_CHAR -> {
+                return List.of(PrimitiveOperation.ADD_CHAR, PrimitiveOperation.CURSOR_RIGHT);
+            }
+            case BACKSPACE_DELETE -> {
+                return List.of(PrimitiveOperation.CURSOR_LEFT, PrimitiveOperation.DELETE_CHAR);
+            }
+            case MOVE_CURSOR_RIGHT -> {
+                return List.of(PrimitiveOperation.CURSOR_RIGHT);
+            }
+            case MOVE_CURSOR_LEFT -> {
+                return List.of(PrimitiveOperation.CURSOR_LEFT);
+            }
+        }
+
+        return List.of(PrimitiveOperation.NONE);
     }
 }

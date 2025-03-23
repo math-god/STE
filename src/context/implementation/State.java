@@ -40,6 +40,8 @@ public class State {
     }
 
     void moveCursorRight() {
+        if (cursorColumnIndex == storage.get(cursorRowIndex).size()) return;
+
         cursorColumnIndex++;
     }
 

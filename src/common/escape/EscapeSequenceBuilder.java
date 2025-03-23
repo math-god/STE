@@ -12,7 +12,7 @@ public class EscapeSequenceBuilder {
         sequence.append((char) ch);
     }
 
-    public EscapeReplaceCode getReplace() {
+    public Integer getReplaceOrNull() {
         switch (sequence.toString()) {
             case "[D" -> {
                 erase();
@@ -35,7 +35,7 @@ public class EscapeSequenceBuilder {
                 return EscapeReplaceCode.DEL;
             }
             default -> {
-                return EscapeReplaceCode.NONE;
+                return null;
             }
         }
     }

@@ -1,7 +1,7 @@
 import context.Context;
 import context.ContextType;
 import context.implementation.Editor;
-import input.TerminalReader;
+import input.InputReader;
 import output.TerminalWriter;
 import common.infrastructure.terminal.Terminal;
 import common.infrastructure.terminal.WindowsTerminal;
@@ -14,7 +14,7 @@ import static common.utility.TerminalIOUtils.eraseScreen;
 import static common.utility.TerminalIOUtils.setCursorAtStart;
 
 public class Application {
-    private static TerminalReader terminalReader;
+    private static InputReader inputReader;
     private static TerminalWriter terminalWriter;
     private static Terminal terminal;
 
@@ -27,7 +27,7 @@ public class Application {
 
         try {
             while (true) {
-                var res = terminalReader.read();
+                var res = inputReader.read();
                 if (!res) break;
                 terminalWriter.write();
             }
@@ -49,7 +49,7 @@ public class Application {
         var editor = new Editor(state);
         contextMap.put(ContextType.EDITOR, editor);
 
-        terminalReader = new TerminalReader(contextMap);
+        inputReader = new InputReader(contextMap);
         terminalWriter = new TerminalWriter();
 
         editor.attachObserver(terminalWriter);
