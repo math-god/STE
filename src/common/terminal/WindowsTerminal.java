@@ -1,4 +1,4 @@
-package common.infrastructure.terminal;
+package common.terminal;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;

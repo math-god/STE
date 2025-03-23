@@ -1,4 +1,4 @@
-package common.infrastructure;
+package common;
 
 public class AsciiConstant {
     public final static int FIRST_PRINTED_CHAR = 32;

@@ -1,4 +1,4 @@
-package common.infrastructure.functional;
+package common.functional;
 
 @FunctionalInterface
 public interface NullaryModifier {

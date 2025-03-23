@@ -1,4 +1,4 @@
-package common.infrastructure.terminal;
+package common.terminal;
 
 public interface Terminal {
 

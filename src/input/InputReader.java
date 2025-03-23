@@ -1,6 +1,5 @@
 package input;
 
-import common.escape.EscapeReplaceCode;
 import common.escape.EscapeSequenceBuilder;
 import context.Context;
 import context.ContextType;

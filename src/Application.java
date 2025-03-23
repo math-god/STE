@@ -3,8 +3,8 @@ import context.ContextType;
 import context.implementation.Editor;
 import input.InputReader;
 import output.TerminalWriter;
-import common.infrastructure.terminal.Terminal;
-import common.infrastructure.terminal.WindowsTerminal;
+import common.terminal.Terminal;
+import common.terminal.WindowsTerminal;
 import context.implementation.State;
 
 import java.io.IOException;
