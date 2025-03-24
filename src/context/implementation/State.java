@@ -39,6 +39,19 @@ public class State {
         changedStorageRowIndexes.add(cursorRowIndex);
     }
 
+    void addNewRow() {
+        var firstRow = storage.get(cursorRowIndex);
+
+        var modifiedFirstRow = firstRow.subList(0, cursorColumnIndex);
+        var secondRow = firstRow.subList(cursorColumnIndex, firstRow.size());
+
+        storage.set(cursorRowIndex, (new LinkedList<>(modifiedFirstRow)));
+        storage.add(new LinkedList<>(secondRow));
+
+        changedStorageRowIndexes.add(cursorRowIndex);
+        changedStorageRowIndexes.add(cursorRowIndex + 1);
+    }
+
     void moveCursorRight() {
         if (cursorColumnIndex == storage.get(cursorRowIndex).size()) return;
 
@@ -49,6 +62,11 @@ public class State {
         if (cursorColumnIndex == 0) return;
 
         cursorColumnIndex--;
+    }
+
+    void setCursorAtStartOfNextRow() {
+        cursorRowIndex++;
+        cursorColumnIndex = 0;
     }
 
     boolean isCursorNotAtStart() {

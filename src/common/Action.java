@@ -6,6 +6,7 @@ public enum Action {
     DEL_DELETE,
     MOVE_CURSOR_RIGHT,
     MOVE_CURSOR_LEFT,
+    ENTER_NEW_ROW,
 
     NONE
 }

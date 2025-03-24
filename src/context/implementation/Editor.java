@@ -97,6 +97,8 @@ public class Editor implements Context {
         initMap.put(PrimitiveOperation.CURSOR_RIGHT, state::moveCursorRight);
         initMap.put(PrimitiveOperation.CURSOR_LEFT, state::moveCursorLeft);
         initMap.put(PrimitiveOperation.DELETE_CHAR, state::deleteCharAtCursor);
+        initMap.put(PrimitiveOperation.NEW_ROW, state::addNewRow);
+        initMap.put(PrimitiveOperation.SET_CURSOR_AT_START_OF_NEXT_ROW, state::setCursorAtStartOfNextRow);
 
         return initMap;
     }
@@ -159,6 +161,7 @@ public class Editor implements Context {
         if (ch == EscapeReplaceCode.DEL) return Action.DEL_DELETE;
         if (ch == EscapeReplaceCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;
         if (ch == EscapeReplaceCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;
+        if (ch == AsciiConstant.ENTER) return Action.ENTER_NEW_ROW;
 
         return Action.NONE;
     }
@@ -180,6 +183,10 @@ public class Editor implements Context {
             }
             case MOVE_CURSOR_LEFT -> {
                 return List.of(PrimitiveOperation.CURSOR_LEFT);
+            }
+            case ENTER_NEW_ROW -> {
+                return List.of(PrimitiveOperation.ADD_CHAR, PrimitiveOperation.NEW_ROW,
+                        PrimitiveOperation.SET_CURSOR_AT_START_OF_NEXT_ROW);
             }
         }
 
