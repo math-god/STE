@@ -96,6 +96,8 @@ public class Editor implements Context {
 
         initMap.put(PrimitiveOperation.CURSOR_RIGHT, state::moveCursorRight);
         initMap.put(PrimitiveOperation.CURSOR_LEFT, state::moveCursorLeft);
+        initMap.put(PrimitiveOperation.CURSOR_UP, state::moveCursorUp);
+        initMap.put(PrimitiveOperation.CURSOR_DOWN, state::moveCursorDown);
         initMap.put(PrimitiveOperation.DELETE_CHAR, state::deleteCharAtCursor);
         initMap.put(PrimitiveOperation.NEW_ROW, state::addNewRow);
         initMap.put(PrimitiveOperation.SET_CURSOR_AT_START_OF_NEXT_ROW, state::setCursorAtStartOfNextRow);
@@ -148,6 +150,7 @@ public class Editor implements Context {
     private String storageRowToString(Collection<Integer> row) {
         StringBuilder str = new StringBuilder();
         for (int ch : row) {
+            if (ch == AsciiConstant.ENTER) continue;
             str.append((char) ch);
         }
 
@@ -161,6 +164,8 @@ public class Editor implements Context {
         if (ch == EscapeReplaceCode.DEL) return Action.DEL_DELETE;
         if (ch == EscapeReplaceCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;
         if (ch == EscapeReplaceCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;
+        if (ch == EscapeReplaceCode.UP_ARROW) return Action.MOVE_CURSOR_UP;
+        if (ch == EscapeReplaceCode.DOWN_ARROW) return Action.MOVE_CURSOR_DOWN;
         if (ch == AsciiConstant.ENTER) return Action.ENTER_NEW_ROW;
 
         return Action.NONE;
@@ -183,6 +188,12 @@ public class Editor implements Context {
             }
             case MOVE_CURSOR_LEFT -> {
                 return List.of(PrimitiveOperation.CURSOR_LEFT);
+            }
+            case MOVE_CURSOR_UP -> {
+                return List.of(PrimitiveOperation.CURSOR_UP);
+            }
+            case MOVE_CURSOR_DOWN -> {
+                return List.of(PrimitiveOperation.CURSOR_DOWN);
             }
             case ENTER_NEW_ROW -> {
                 return List.of(PrimitiveOperation.ADD_CHAR, PrimitiveOperation.NEW_ROW,

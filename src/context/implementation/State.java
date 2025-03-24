@@ -8,8 +8,9 @@ import java.util.LinkedList;
 
 public class State {
 
-    private Integer cursorRowIndex = 0;
-    private Integer cursorColumnIndex = 0;
+    private int cursorRowIndex = 0;
+    private int cursorColumnIndex = 0;
+    private int cursorColumnEdgeIndex = 0;
 
     private final LinkedList<LinkedList<Integer>> storage;
     private final Collection<Integer> changedStorageRowIndexes = new ArrayList<>();
@@ -53,20 +54,53 @@ public class State {
     }
 
     void moveCursorRight() {
-        if (cursorColumnIndex == storage.get(cursorRowIndex).size()) return;
+        if (cursorColumnIndex == storage.get(cursorRowIndex).size() && cursorRowIndex == storage.size() - 1) return;
 
-        cursorColumnIndex++;
+        if (cursorColumnIndex == storage.get(cursorRowIndex).size() && cursorRowIndex < storage.size() - 1) {
+            cursorRowIndex++;
+            cursorColumnIndex = 0;
+            cursorColumnEdgeIndex = 0;
+        } else {
+            cursorColumnIndex++;
+            cursorColumnEdgeIndex++;
+        }
     }
 
     void moveCursorLeft() {
-        if (cursorColumnIndex == 0) return;
+        if (cursorColumnIndex == 0 && cursorRowIndex == 0) return;
 
-        cursorColumnIndex--;
+        if (cursorColumnIndex == 0 && cursorRowIndex > 0) {
+            cursorRowIndex--;
+            cursorColumnIndex = storage.get(cursorRowIndex).size();
+            cursorColumnEdgeIndex = storage.get(cursorRowIndex).size();
+        } else {
+            cursorColumnIndex--;
+            cursorColumnEdgeIndex--;
+        }
+    }
+
+    void moveCursorUp() {
+        if (cursorRowIndex == 0) return;
+
+        var previousRowSize = storage.get(cursorRowIndex - 1).size();
+        cursorColumnIndex = Math.min(previousRowSize, cursorColumnEdgeIndex);
+
+        cursorRowIndex--;
+    }
+
+    void moveCursorDown() {
+        if (cursorRowIndex == storage.size() - 1) return;
+
+        var nextRowSize = storage.get(cursorRowIndex + 1).size();
+        cursorColumnIndex = Math.min(nextRowSize, cursorColumnEdgeIndex);
+
+        cursorRowIndex++;
     }
 
     void setCursorAtStartOfNextRow() {
         cursorRowIndex++;
         cursorColumnIndex = 0;
+        cursorColumnEdgeIndex = 0;
     }
 
     boolean isCursorNotAtStart() {
