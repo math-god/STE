@@ -1,29 +1,30 @@
 package common;
 
 public enum PrimitiveOperation {
-    ADD_CHAR(Group.TEXT, Arity.UNARY),
-    DELETE_CHAR(Group.TEXT, Arity.NUllARY),
-    CURSOR_UP(Group.CURSOR, Arity.NUllARY),
-    CURSOR_DOWN(Group.CURSOR, Arity.NUllARY),
-    CURSOR_LEFT(Group.CURSOR, Arity.NUllARY),
-    CURSOR_RIGHT(Group.CURSOR, Arity.NUllARY),
+    ADD_CHAR(Group.TEXT, FunctionType.UNARY),
+    DELETE_CHAR(Group.TEXT, FunctionType.NUllARY),
+    CURSOR_UP(Group.CURSOR, FunctionType.NUllARY),
+    CURSOR_DOWN(Group.CURSOR, FunctionType.NUllARY),
+    CURSOR_LEFT(Group.CURSOR, FunctionType.NUllARY),
+    CURSOR_RIGHT(Group.CURSOR, FunctionType.NUllARY),
+    CURSOR_AT_START_DROP_CONDITION(Group.NONE, FunctionType.NULLARY_PREDICATE),
 
-    NONE(Group.NONE, Arity.NONE);
+    NONE(Group.NONE, FunctionType.NONE);
 
     private final Group group;
-    private final Arity arity;
+    private final FunctionType functionType;
 
-    PrimitiveOperation(Group group, Arity arity) {
+    PrimitiveOperation(Group group, FunctionType functionType) {
         this.group = group;
-        this.arity = arity;
+        this.functionType = functionType;
     }
 
     public Group getGroup() {
         return group;
     }
 
-    public Arity getArity() {
-        return arity;
+    public FunctionType getFunctionType() {
+        return functionType;
     }
 
     public static PrimitiveOperation getOperation(Integer ch) {
@@ -57,9 +58,10 @@ public enum PrimitiveOperation {
         NONE
     }
 
-    public enum Arity {
+    public enum FunctionType {
         NUllARY,
         UNARY,
+        NULLARY_PREDICATE,
 
         NONE
     }

@@ -5,6 +5,7 @@ import common.PrimitiveOperation;
 import common.escape.EscapeReplaceCode;
 import common.AsciiConstant;
 import common.functional.NullaryModifier;
+import common.functional.NullaryPredicate;
 import common.functional.UnaryModifier;
 import context.Context;
 import context.ContextObserver;
@@ -23,6 +24,7 @@ public class Editor implements Context {
     private final Collection<ContextObserver> OBSERVERS;
     private final Map<PrimitiveOperation, NullaryModifier> NULLARY_STATE_MODIFIER_MAP;
     private final Map<PrimitiveOperation, UnaryModifier<Integer>> UNARY_STATE_MODIFIER_MAP;
+    private final Map<PrimitiveOperation, NullaryPredicate> NULLARY_PREDICATE_MAP;
     private final Logger logger = FileLogger.getFileLogger(Editor.class.getName(), "editor-log.txt");
 
     public Editor(State state) {
@@ -30,14 +32,15 @@ public class Editor implements Context {
         OBSERVERS = new HashSet<>();
         NULLARY_STATE_MODIFIER_MAP = initNullaryStateModifiers();
         UNARY_STATE_MODIFIER_MAP = initUnaryStateModifiers();
+        NULLARY_PREDICATE_MAP = initNullaryPredicates();
     }
 
     @Override
     public void input(Integer ch) {
         var action = getActionByChar(ch);
         var operations = getOperationsByAction(action);
-        operations.forEach(operation -> {
-            if (operation.getArity() == PrimitiveOperation.Arity.NUllARY) {
+        for (var operation : operations) {
+            if (operation.getFunctionType() == PrimitiveOperation.FunctionType.NUllARY) {
                 var modifier = NULLARY_STATE_MODIFIER_MAP.get(operation);
                 if (modifier == null) {
                     throw new IllegalArgumentException("Editor cant find nullary modifier for: " + ch);
@@ -45,7 +48,7 @@ public class Editor implements Context {
 
                 modifier.modify();
             }
-            if (operation.getArity() == PrimitiveOperation.Arity.UNARY) {
+            if (operation.getFunctionType() == PrimitiveOperation.FunctionType.UNARY) {
                 var modifier = UNARY_STATE_MODIFIER_MAP.get(operation);
                 if (modifier == null) {
                     throw new IllegalArgumentException("Editor cant find unary modifier for: " + ch);
@@ -53,7 +56,17 @@ public class Editor implements Context {
 
                 modifier.modify(ch);
             }
-            if (operation.getArity() == PrimitiveOperation.Arity.NONE) {
+            if (operation.getFunctionType() == PrimitiveOperation.FunctionType.NULLARY_PREDICATE) {
+                var predicate = NULLARY_PREDICATE_MAP.get(operation);
+                if (predicate == null) {
+                    throw new IllegalArgumentException("Editor cant find nullary predicate for: " + ch);
+                }
+
+                if (!predicate.test()) {
+                    return;
+                }
+            }
+            if (operation.getFunctionType() == PrimitiveOperation.FunctionType.NONE) {
                 throw new IllegalArgumentException("Editor cant find any modifier for: " + ch);
             }
 
@@ -63,7 +76,7 @@ public class Editor implements Context {
             if (operation.getGroup() == PrimitiveOperation.Group.CURSOR) {
                 notifyCursorChanged(operation);
             }
-        });
+        }
     }
 
     @Override
@@ -92,6 +105,14 @@ public class Editor implements Context {
         var initMap = new HashMap<PrimitiveOperation, UnaryModifier<Integer>>();
 
         initMap.put(PrimitiveOperation.ADD_CHAR, state::addChar);
+
+        return initMap;
+    }
+
+    private Map<PrimitiveOperation, NullaryPredicate> initNullaryPredicates() {
+        var initMap = new HashMap<PrimitiveOperation, NullaryPredicate>();
+
+        initMap.put(PrimitiveOperation.CURSOR_AT_START_DROP_CONDITION, state::isCursorNotAtStart);
 
         return initMap;
     }
@@ -148,7 +169,11 @@ public class Editor implements Context {
                 return List.of(PrimitiveOperation.ADD_CHAR, PrimitiveOperation.CURSOR_RIGHT);
             }
             case BACKSPACE_DELETE -> {
-                return List.of(PrimitiveOperation.CURSOR_LEFT, PrimitiveOperation.DELETE_CHAR);
+                return List.of(PrimitiveOperation.CURSOR_AT_START_DROP_CONDITION,
+                        PrimitiveOperation.CURSOR_LEFT, PrimitiveOperation.DELETE_CHAR);
+            }
+            case DEL_DELETE -> {
+                return List.of(PrimitiveOperation.DELETE_CHAR);
             }
             case MOVE_CURSOR_RIGHT -> {
                 return List.of(PrimitiveOperation.CURSOR_RIGHT);

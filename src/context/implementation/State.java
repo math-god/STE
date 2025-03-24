@@ -51,6 +51,10 @@ public class State {
         cursorColumnIndex--;
     }
 
+    boolean isCursorNotAtStart() {
+        return cursorColumnIndex > 0;
+    }
+
     Collection<Integer> getStorageRow(Integer rowIndex) {
         return storage.get(rowIndex);
     }

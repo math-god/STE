@@ -22,6 +22,7 @@ public class TerminalWriter implements ContextObserver {
             switch (info.getOperation().getGroup()) {
                 case TEXT -> {
                     var actualContextInfo = (ContextRowNotificationModel) info;
+                    logger.info(actualContextInfo.getRowsContent().toString());
                     var rowsInfo = actualContextInfo.getRowsContent();
                     for (var rowInfo : rowsInfo) {
                         printRow(rowInfo.getContent(), rowInfo.getRowNumber());
@@ -29,6 +30,7 @@ public class TerminalWriter implements ContextObserver {
                 }
                 case CURSOR -> {
                     var actualContextInfo = (ContextCursorNotificationModel) info;
+                    logger.info("row: " + actualContextInfo.getCursorRowIndex() + " column " + actualContextInfo.getCursorColumnIndex());
                     setCursor(actualContextInfo.getCursorRowIndex(), actualContextInfo.getCursorColumnIndex());
                 }
             }
