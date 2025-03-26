@@ -127,6 +127,8 @@ public class Editor implements Context {
         var changedRowsIndexes = state.getChangedStorageRowIndexesWithClearing();
         var rowsContent = new ArrayList<RowContentModel>();
 
+        logger.info(changedRowsIndexes.toString());
+
         for (var rowIndex : changedRowsIndexes) {
             rowsContent.add(new RowContentModel(rowIndex, storageRowToString(state.getStorageRow(rowIndex))));
         }

@@ -1,5 +1,6 @@
 package context.implementation;
 
+import common.AsciiConstant;
 import common.utility.CommonUtils;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class State {
         var row = storage.get(cursorRowIndex);
         if (CommonUtils.getElementOrNull(row, cursorColumnIndex) == null) return;
 
-        row.remove((int) cursorColumnIndex);
+        row.remove(cursorColumnIndex);
         changedStorageRowIndexes.add(cursorRowIndex);
     }
 
@@ -47,14 +48,21 @@ public class State {
         var secondRow = firstRow.subList(cursorColumnIndex, firstRow.size());
 
         storage.set(cursorRowIndex, (new LinkedList<>(modifiedFirstRow)));
-        storage.add(new LinkedList<>(secondRow));
+        if (cursorRowIndex == storage.size() - 1) {
+            storage.add(new LinkedList<>(secondRow));
+        } else {
+            storage.add(cursorRowIndex + 1, new LinkedList<>(secondRow));
+        }
 
-        changedStorageRowIndexes.add(cursorRowIndex);
-        changedStorageRowIndexes.add(cursorRowIndex + 1);
+        for (var i = cursorRowIndex; i < storage.size(); i++) {
+            changedStorageRowIndexes.add(i);
+        }
     }
 
     void moveCursorRight() {
-        if (cursorColumnIndex == storage.get(cursorRowIndex).size() && cursorRowIndex == storage.size() - 1) return;
+        var currentRow = storage.get(cursorRowIndex);
+        currentRow.removeIf(m -> m == AsciiConstant.ENTER);
+        if (cursorColumnIndex == currentRow.size() && cursorRowIndex == storage.size() - 1) return;
 
         if (cursorColumnIndex == storage.get(cursorRowIndex).size() && cursorRowIndex < storage.size() - 1) {
             cursorRowIndex++;
