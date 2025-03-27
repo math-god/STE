@@ -1,4 +1,4 @@
-package context.implementation;
+package context.operation.editorcommand;
 
 import common.AsciiConstant;
 import common.utility.CommonUtils;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public class State {
+public class EditorState {
 
     private int cursorRowIndex = 0;
     private int cursorColumnIndex = 0;
@@ -31,6 +31,12 @@ public class State {
         }
 
         changedStorageRowIndexes.add(cursorRowIndex);
+    }
+
+    void deleteChar(int rowIndex, int columnIndex) {
+        var row = storage.get(rowIndex);
+
+        row.remove(columnIndex);
     }
 
     void deleteCharAtCursor() {

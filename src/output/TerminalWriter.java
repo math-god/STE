@@ -1,6 +1,6 @@
 package output;
 
-import context.ContextObserver;
+import context.Observer;
 import context.dto.ContextCursorNotificationModel;
 import context.dto.ContextNotificationModel;
 import context.dto.ContextRowNotificationModel;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import static common.utility.TerminalIOUtils.printRow;
 import static common.utility.TerminalIOUtils.setCursor;
 
-public class TerminalWriter implements ContextObserver {
+public class TerminalWriter implements Observer {
     private final Collection<ContextNotificationModel> notifications = new LinkedList<>();
     private final Logger logger = FileLogger.getFileLogger(TerminalWriter.class.getName(), "terminal-writer-log.txt");
 

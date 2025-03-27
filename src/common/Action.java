@@ -9,6 +9,7 @@ public enum Action {
     MOVE_CURSOR_UP,
     MOVE_CURSOR_DOWN,
     ENTER_NEW_ROW,
+    INPUT_TAB,
 
     NONE
 }
