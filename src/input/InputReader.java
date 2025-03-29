@@ -5,7 +5,7 @@ import common.AsciiConstant;
 import common.escape.EscapeReplaceCode;
 import common.escape.EscapeSequenceBuilder;
 import context.ContextType;
-import context.operation.transaction.Transaction;
+import context.operation.command.transaction.Transaction;
 
 import java.io.IOException;
 import java.util.HashMap;

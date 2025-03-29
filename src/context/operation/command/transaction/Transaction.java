@@ -1,4 +1,4 @@
-package context.operation.transaction;
+package context.operation.command.transaction;
 
 import context.operation.command.Command;
 import context.operation.command.UndoCommand;

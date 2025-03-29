@@ -1,4 +1,4 @@
-package context.operation.editorcommand;
+package context.operation.state;
 
 import common.AsciiConstant;
 import common.utility.CommonUtils;
@@ -21,7 +21,7 @@ public class EditorState {
         storage.add(new LinkedList<>());
     }
 
-    void addChar(Integer ch) {
+    public void addChar(Integer ch) {
         var row = storage.get(cursorRowIndex);
 
         if (row.size() - 1 < cursorColumnIndex) {
@@ -33,13 +33,13 @@ public class EditorState {
         changedStorageRowIndexes.add(cursorRowIndex);
     }
 
-    void deleteChar(int rowIndex, int columnIndex) {
+    public void deleteChar(int rowIndex, int columnIndex) {
         var row = storage.get(rowIndex);
 
         row.remove(columnIndex);
     }
 
-    void deleteCharAtCursor() {
+    public void deleteCharAtCursor() {
         var row = storage.get(cursorRowIndex);
         if (CommonUtils.getElementOrNull(row, cursorColumnIndex) == null) return;
 
@@ -47,25 +47,31 @@ public class EditorState {
         changedStorageRowIndexes.add(cursorRowIndex);
     }
 
-    void addNewRow() {
+    public int addRow() {
         var firstRow = storage.get(cursorRowIndex);
 
         var modifiedFirstRow = firstRow.subList(0, cursorColumnIndex);
-        var secondRow = firstRow.subList(cursorColumnIndex, firstRow.size());
+        var secondRow = new LinkedList<>(firstRow.subList(cursorColumnIndex, firstRow.size()));
 
         storage.set(cursorRowIndex, (new LinkedList<>(modifiedFirstRow)));
         if (cursorRowIndex == storage.size() - 1) {
-            storage.add(new LinkedList<>(secondRow));
+            storage.add(secondRow);
         } else {
-            storage.add(cursorRowIndex + 1, new LinkedList<>(secondRow));
+            storage.add(cursorRowIndex + 1, secondRow);
         }
 
         for (var i = cursorRowIndex; i < storage.size(); i++) {
             changedStorageRowIndexes.add(i);
         }
+
+        return storage.indexOf(secondRow);
     }
 
-    void moveCursorRight() {
+    public void deleteRow(int rowIndex) {
+        storage.remove(rowIndex);
+    }
+
+    public void moveCursorRight() {
         var currentRow = storage.get(cursorRowIndex);
         currentRow.removeIf(m -> m == AsciiConstant.ENTER);
         if (cursorColumnIndex == currentRow.size() && cursorRowIndex == storage.size() - 1) return;
@@ -80,7 +86,7 @@ public class EditorState {
         }
     }
 
-    void moveCursorLeft() {
+    public void moveCursorLeft() {
         if (cursorColumnIndex == 0 && cursorRowIndex == 0) return;
 
         if (cursorColumnIndex == 0 && cursorRowIndex > 0) {
@@ -93,7 +99,7 @@ public class EditorState {
         }
     }
 
-    void moveCursorUp() {
+    public void moveCursorUp() {
         if (cursorRowIndex == 0) return;
 
         var previousRowSize = storage.get(cursorRowIndex - 1).size();
@@ -102,7 +108,7 @@ public class EditorState {
         cursorRowIndex--;
     }
 
-    void moveCursorDown() {
+    public void moveCursorDown() {
         if (cursorRowIndex == storage.size() - 1) return;
 
         var nextRowSize = storage.get(cursorRowIndex + 1).size();
@@ -111,50 +117,44 @@ public class EditorState {
         cursorRowIndex++;
     }
 
-    void setCursorAtStartOfNextRow() {
-        cursorRowIndex++;
-        cursorColumnIndex = 0;
-        cursorColumnEdgeIndex = 0;
-    }
-
-    boolean isCursorNotAtStart() {
+    public boolean isCursorNotAtStart() {
         return cursorColumnIndex > 0;
     }
 
-    Collection<Integer> getStorageRow(Integer rowIndex) {
+    public Collection<Integer> getStorageRow(Integer rowIndex) {
         return storage.get(rowIndex);
     }
 
-    Collection<Collection<Integer>> getStorageRows(Collection<Integer> rowIndexes) {
+    public Collection<Collection<Integer>> getStorageRows(Collection<Integer> rowIndexes) {
         var rows = new ArrayList<Collection<Integer>>();
         rowIndexes.forEach(m -> rows.add(storage.get(m)));
 
         return rows;
     }
 
-    Collection<Integer> getChangedStorageRowIndexesWithClearing() {
+    public Collection<Integer> getChangedStorageRowIndexesWithClearing() {
         var changedRows = new ArrayList<>(changedStorageRowIndexes);
         changedStorageRowIndexes.clear();
 
         return changedRows;
     }
 
-    Integer getCursorRowIndex() {
+    public Integer getCursorRowIndex() {
         return cursorRowIndex;
     }
 
-    Integer getCursorColumnIndex() {
+    public Integer getCursorColumnIndex() {
         return cursorColumnIndex;
     }
 
-    void setCursorRowIndex(Integer row) {
+    public void setCursorRowIndex(Integer row) {
         if (row < 0) throw new IllegalArgumentException("Bad state: cursor row cant be less than 0");
         this.cursorRowIndex = row;
     }
 
-    void setCursorColumnIndex(Integer column) {
+    public void setCursorColumnIndex(Integer column) {
         if (column < 0) throw new IllegalArgumentException("Bad state: cursor column cant be less than 0");
         this.cursorColumnIndex = column;
+        this.cursorColumnEdgeIndex = column;
     }
-
 }
