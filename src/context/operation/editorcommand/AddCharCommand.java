@@ -2,26 +2,25 @@ package context.operation.editorcommand;
 
 import common.AsciiConstant;
 import common.PrimitiveOperation;
-import context.Observable;
-import context.Observer;
+import context.operation.notification.Producer;
+import context.operation.notification.Consumer;
 import context.dto.ContextRowNotificationModel;
 import context.dto.RowContentModel;
-import context.operation.UndoCommand;
+import context.operation.command.UndoCommand;
 import input.InputReader;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class AddCharCommand implements UndoCommand, Observable {
+public class AddCharCommand extends Producer implements UndoCommand {
 
     private int rowIndex;
     private int columnIndex;
     private final EditorState editorState;
-    private final Collection<Observer> observers;
 
     public AddCharCommand(EditorState editorState) {
-        observers = new HashSet<>();
+        super();
         this.editorState = editorState;
     }
 
@@ -39,16 +38,6 @@ public class AddCharCommand implements UndoCommand, Observable {
         editorState.deleteChar(rowIndex, columnIndex);
     }
 
-    @Override
-    public void attachObserver(Observer observer) {
-        observers.add(observer);
-    }
-
-    @Override
-    public void detachObserver(Observer observer) {
-        observers.remove(observer);
-    }
-
     private void notifyTextChanged() {
         var info = new ContextRowNotificationModel();
 
@@ -62,7 +51,7 @@ public class AddCharCommand implements UndoCommand, Observable {
         info.setOperation(PrimitiveOperation.ADD_CHAR);
         info.setRowsContent(rowsContent);
 
-        observers.forEach(m -> m.setInfo(info));
+        consumers.forEach(m -> m.setInfo(info));
     }
 
     private String storageRowToString(Collection<Integer> row) {

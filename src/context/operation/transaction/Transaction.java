@@ -1,7 +1,7 @@
 package context.operation.transaction;
 
-import context.operation.Command;
-import context.operation.UndoCommand;
+import context.operation.command.Command;
+import context.operation.command.UndoCommand;
 
 import java.util.Collection;
 

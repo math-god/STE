@@ -1,22 +1,21 @@
 package context.operation.editorcommand;
 
 import common.PrimitiveOperation;
-import context.Observable;
-import context.Observer;
+import context.operation.notification.Producer;
+import context.operation.notification.Consumer;
 import context.dto.ContextCursorNotificationModel;
-import context.operation.Command;
+import context.operation.command.Command;
 
 import java.util.Collection;
 import java.util.HashSet;
 
-public class MoveCursorRightCommand implements Command, Observable {
+public class MoveCursorRightCommand extends Producer implements Command {
 
     private final EditorState editorState;
-    private final Collection<Observer> observers;
 
     public MoveCursorRightCommand(EditorState editorState) {
+        super();
         this.editorState = editorState;
-        this.observers = new HashSet<>();
     }
 
     @Override
@@ -26,16 +25,6 @@ public class MoveCursorRightCommand implements Command, Observable {
         notifyCursorChanged();
     }
 
-    @Override
-    public void attachObserver(Observer observer) {
-        observers.add(observer);
-    }
-
-    @Override
-    public void detachObserver(Observer observer) {
-        observers.remove(observer);
-    }
-
     private void notifyCursorChanged() {
         var info = new ContextCursorNotificationModel();
 
@@ -43,6 +32,6 @@ public class MoveCursorRightCommand implements Command, Observable {
         info.setCursorColumnIndex(editorState.getCursorColumnIndex());
         info.setCursorRowIndex(editorState.getCursorRowIndex());
 
-        observers.forEach(m -> m.setInfo(info));
+        consumers.forEach(m -> m.setInfo(info));
     }
 }
