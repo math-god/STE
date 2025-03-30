@@ -19,14 +19,16 @@ public class MoveCursorAtStartCommand implements UndoCommand {
     }
 
     @Override
-    public void execute() {
+    public boolean execute() {
         rowIndex = state.getCursorRowIndex();
         columnIndex = state.getCursorColumnIndex();
 
-        state.setCursorRowIndex(rowIndex + 1);
-        state.setCursorColumnIndex(0);
+        var rowResult = state.setCursorRowIndex(rowIndex + 1);
+        var columnResult = state.setCursorColumnIndex(0);
 
-       producer.notifyCursorChanged(PrimitiveOperation.SET_CURSOR, state);
+        producer.notifyCursorChanged(PrimitiveOperation.SET_CURSOR, state);
+
+        return rowResult && columnResult;
     }
 
     @Override

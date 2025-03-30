@@ -62,6 +62,7 @@ public class Application {
         var editorTransactions = new HashMap<Action, Transaction>();
 
         var addCharCommand = new AddCharCommand(editorState, terminalWriter);
+        var deleteCharCommand = new DeleteCharCommand(editorState, terminalWriter);
         var addRowCommand = new AddRowCommand(editorState, terminalWriter);
         var moveRightCommand = new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_RIGHT);
         var moveLeftCommand = new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_LEFT);
@@ -75,6 +76,8 @@ public class Application {
         editorTransactions.put(Action.MOVE_CURSOR_UP, new Transaction(List.of(moveUpCommand)));
         editorTransactions.put(Action.MOVE_CURSOR_DOWN, new Transaction(List.of(moveDownCommand)));
         editorTransactions.put(Action.ENTER_NEW_ROW, new Transaction(List.of(addCharCommand, addRowCommand, moveCursorAtStartCommand)));
+        editorTransactions.put(Action.BACKSPACE_DELETE, new Transaction(List.of(moveLeftCommand, deleteCharCommand)));
+        editorTransactions.put(Action.DEL_DELETE, new Transaction(List.of(deleteCharCommand)));
 
         return editorTransactions;
     }

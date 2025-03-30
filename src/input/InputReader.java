@@ -24,7 +24,7 @@ public class InputReader {
     public InputReader(Map<ContextType, HashMap<Action, Transaction>> transactions) {
         this.transactions = transactions;
 
-        // editor is default value
+        // default value
         currentContext = ContextType.EDITOR;
     }
 

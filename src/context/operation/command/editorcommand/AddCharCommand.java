@@ -20,12 +20,14 @@ public class AddCharCommand implements UndoCommand {
     }
 
     @Override
-    public void execute() {
+    public boolean execute() {
         editorState.addChar(InputReader.getInputChar());
         rowIndex = editorState.getCursorRowIndex();
         columnIndex = editorState.getCursorColumnIndex();
 
         producer.notifyTextChanged(PrimitiveOperation.ADD_CHAR, editorState);
+
+        return true;
     }
 
     @Override

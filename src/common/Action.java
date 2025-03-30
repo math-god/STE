@@ -8,6 +8,7 @@ public enum Action {
     MOVE_CURSOR_LEFT,
     MOVE_CURSOR_UP,
     MOVE_CURSOR_DOWN,
+    MOVE_CURSOR,
     ENTER_NEW_ROW,
     INPUT_TAB,
 

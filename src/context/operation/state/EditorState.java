@@ -39,42 +39,44 @@ public class EditorState {
         row.remove(columnIndex);
     }
 
-    public void deleteCharAtCursor() {
+    public int deleteCharAtCursor() {
         var row = storage.get(cursorRowIndex);
-        if (CommonUtils.getElementOrNull(row, cursorColumnIndex) == null) return;
+        if (CommonUtils.getElementOrNull(row, cursorColumnIndex) == null) return AsciiConstant.NULL;
 
-        row.remove(cursorColumnIndex);
+        var ch = row.remove(cursorColumnIndex);
         changedStorageRowIndexes.add(cursorRowIndex);
+
+        return ch;
     }
 
     public int addRow() {
-        var firstRow = storage.get(cursorRowIndex);
+        var fromRow = storage.get(cursorRowIndex);
 
-        var modifiedFirstRow = firstRow.subList(0, cursorColumnIndex);
-        var secondRow = new LinkedList<>(firstRow.subList(cursorColumnIndex, firstRow.size()));
+        var modifiedFromRow = fromRow.subList(0, cursorColumnIndex);
+        var toRow = new LinkedList<>(fromRow.subList(cursorColumnIndex, fromRow.size()));
 
-        storage.set(cursorRowIndex, (new LinkedList<>(modifiedFirstRow)));
+        storage.set(cursorRowIndex, (new LinkedList<>(modifiedFromRow)));
         if (cursorRowIndex == storage.size() - 1) {
-            storage.add(secondRow);
+            storage.add(toRow);
         } else {
-            storage.add(cursorRowIndex + 1, secondRow);
+            storage.add(cursorRowIndex + 1, toRow);
         }
 
         for (var i = cursorRowIndex; i < storage.size(); i++) {
             changedStorageRowIndexes.add(i);
         }
 
-        return storage.indexOf(secondRow);
+        return storage.indexOf(toRow);
     }
 
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
     }
 
-    public void moveCursorRight() {
+    public boolean moveCursorRight() {
         var currentRow = storage.get(cursorRowIndex);
         currentRow.removeIf(m -> m == AsciiConstant.ENTER);
-        if (cursorColumnIndex == currentRow.size() && cursorRowIndex == storage.size() - 1) return;
+        if (cursorColumnIndex == currentRow.size() && cursorRowIndex == storage.size() - 1) return false;
 
         if (cursorColumnIndex == storage.get(cursorRowIndex).size() && cursorRowIndex < storage.size() - 1) {
             cursorRowIndex++;
@@ -84,10 +86,12 @@ public class EditorState {
             cursorColumnIndex++;
             cursorColumnEdgeIndex++;
         }
+
+        return true;
     }
 
-    public void moveCursorLeft() {
-        if (cursorColumnIndex == 0 && cursorRowIndex == 0) return;
+    public boolean moveCursorLeft() {
+        if (cursorColumnIndex == 0 && cursorRowIndex == 0) return false;
 
         if (cursorColumnIndex == 0 && cursorRowIndex > 0) {
             cursorRowIndex--;
@@ -97,24 +101,30 @@ public class EditorState {
             cursorColumnIndex--;
             cursorColumnEdgeIndex--;
         }
+
+        return true;
     }
 
-    public void moveCursorUp() {
-        if (cursorRowIndex == 0) return;
+    public boolean moveCursorUp() {
+        if (cursorRowIndex == 0) return false;
 
         var previousRowSize = storage.get(cursorRowIndex - 1).size();
         cursorColumnIndex = Math.min(previousRowSize, cursorColumnEdgeIndex);
 
         cursorRowIndex--;
+
+        return true;
     }
 
-    public void moveCursorDown() {
-        if (cursorRowIndex == storage.size() - 1) return;
+    public boolean moveCursorDown() {
+        if (cursorRowIndex == storage.size() - 1) return false;
 
         var nextRowSize = storage.get(cursorRowIndex + 1).size();
         cursorColumnIndex = Math.min(nextRowSize, cursorColumnEdgeIndex);
 
         cursorRowIndex++;
+
+        return true;
     }
 
     public boolean isCursorNotAtStart() {
@@ -147,14 +157,19 @@ public class EditorState {
         return cursorColumnIndex;
     }
 
-    public void setCursorRowIndex(Integer row) {
-        if (row < 0) throw new IllegalArgumentException("Bad state: cursor row cant be less than 0");
+    public boolean setCursorRowIndex(Integer row) {
+        if (row < 0) return false;
         this.cursorRowIndex = row;
+
+        return true;
     }
 
-    public void setCursorColumnIndex(Integer column) {
-        if (column < 0) throw new IllegalArgumentException("Bad state: cursor column cant be less than 0");
+    public boolean setCursorColumnIndex(Integer column) {
+        if (column < 0) return false;
+
         this.cursorColumnIndex = column;
         this.cursorColumnEdgeIndex = column;
+
+        return true;
     }
 }
