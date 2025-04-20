@@ -2,8 +2,8 @@ package context.operation.notification;
 
 import common.AsciiConstant;
 import common.PrimitiveOperation;
-import context.dto.ContextCursorNotificationModel;
-import context.dto.ContextRowNotificationModel;
+import context.dto.CursorNotificationModel;
+import context.dto.TextNotificationModel;
 import context.dto.RowContentModel;
 import context.operation.state.EditorState;
 
@@ -35,7 +35,7 @@ public class EditorProducer implements Producer {
     }
 
     public void notifyTextChanged(PrimitiveOperation operation, EditorState state) {
-        var info = new ContextRowNotificationModel();
+        var info = new TextNotificationModel();
 
         var changedRowsIndexes = state.getChangedStorageRowIndexesWithClearing();
         var rowsContent = new ArrayList<RowContentModel>();
@@ -51,7 +51,7 @@ public class EditorProducer implements Producer {
     }
 
     public void notifyCursorChanged(PrimitiveOperation operation, EditorState state) {
-        var info = new ContextCursorNotificationModel();
+        var info = new CursorNotificationModel();
 
         info.setOperation(operation);
         info.setCursorColumnIndex(state.getCursorColumnIndex());
@@ -63,7 +63,7 @@ public class EditorProducer implements Producer {
     private String storageRowToString(Collection<Integer> row) {
         StringBuilder str = new StringBuilder();
         for (int ch : row) {
-            if (ch == AsciiConstant.ENTER) continue;
+            if (ch == AsciiConstant.ENTER) ch = 78;
             str.append((char) ch);
         }
 

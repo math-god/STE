@@ -20,7 +20,8 @@ public class DeleteCharCommand implements UndoCommand {
 
     @Override
     public boolean execute() {
-        ch = state.deleteCharAtCursor();
+        ch = state.deleteCharAtCursorAndGetChar();
+        if (ch == AsciiConstant.ENTER) state.deleteRow(state.getCursorRowIndex());
 
         producer.notifyTextChanged(PrimitiveOperation.DELETE_CHAR, state);
 

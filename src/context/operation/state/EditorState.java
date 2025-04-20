@@ -14,11 +14,19 @@ public class EditorState {
     private int cursorColumnEdgeIndex = 0;
 
     private final LinkedList<LinkedList<Integer>> storage;
+    private final LinkedList<Integer> testStor;
     private final Collection<Integer> changedStorageRowIndexes = new ArrayList<>();
+    private int size;
 
     {
         storage = new LinkedList<>();
         storage.add(new LinkedList<>());
+
+        testStor = new LinkedList<>();
+    }
+
+    public int getTextSize() {
+        return size;
     }
 
     public void addChar(Integer ch) {
@@ -30,6 +38,7 @@ public class EditorState {
             row.add(cursorColumnIndex, ch);
         }
 
+        size++;
         changedStorageRowIndexes.add(cursorRowIndex);
     }
 
@@ -37,9 +46,10 @@ public class EditorState {
         var row = storage.get(rowIndex);
 
         row.remove(columnIndex);
+        size--;
     }
 
-    public int deleteCharAtCursor() {
+    public int deleteCharAtCursorAndGetChar() {
         var row = storage.get(cursorRowIndex);
         if (CommonUtils.getElementOrNull(row, cursorColumnIndex) == null) return AsciiConstant.NULL;
 
@@ -71,6 +81,10 @@ public class EditorState {
 
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
+
+        for (var i = rowIndex; i < storage.size(); i++) {
+            changedStorageRowIndexes.add(i);
+        }
     }
 
     public boolean moveCursorRight() {

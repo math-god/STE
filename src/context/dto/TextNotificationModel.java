@@ -2,7 +2,7 @@ package context.dto;
 
 import java.util.Collection;
 
-public class ContextRowNotificationModel extends ContextNotificationModel {
+public class TextNotificationModel extends ContextNotificationModel {
     private Collection<RowContentModel> rowsContent;
 
     public Collection<RowContentModel> getRowsContent() {

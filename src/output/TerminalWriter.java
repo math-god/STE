@@ -1,17 +1,18 @@
 package output;
 
 import context.operation.notification.Consumer;
-import context.dto.ContextCursorNotificationModel;
+import context.dto.CursorNotificationModel;
 import context.dto.ContextNotificationModel;
-import context.dto.ContextRowNotificationModel;
+import context.dto.TextNotificationModel;
 import log.FileLogger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
-import static common.utility.TerminalIOUtils.printRow;
-import static common.utility.TerminalIOUtils.setCursor;
+import static common.utility.TerminalIOUtils.*;
 
 public class TerminalWriter implements Consumer {
     private final Collection<ContextNotificationModel> notifications = new LinkedList<>();
@@ -21,15 +22,15 @@ public class TerminalWriter implements Consumer {
         notifications.forEach(info -> {
             switch (info.getOperation().getGroup()) {
                 case TEXT -> {
-                    var actualContextInfo = (ContextRowNotificationModel) info;
+                    var actualContextInfo = (TextNotificationModel) info;
                     logger.info(actualContextInfo.getRowsContent().toString());
                     var rowsInfo = actualContextInfo.getRowsContent();
                     for (var rowInfo : rowsInfo) {
-                        printRow(rowInfo.getContent(), rowInfo.getRowNumber());
+                        printAll(rowInfo.getContent());
                     }
                 }
                 case CURSOR -> {
-                    var actualContextInfo = (ContextCursorNotificationModel) info;
+                    var actualContextInfo = (CursorNotificationModel) info;
                     logger.info("row: " + actualContextInfo.getCursorRowIndex() + " column " + actualContextInfo.getCursorColumnIndex());
                     setCursor(actualContextInfo.getCursorRowIndex(), actualContextInfo.getCursorColumnIndex());
                 }

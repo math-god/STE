@@ -27,6 +27,6 @@ public class RowContentModel {
 
     @Override
     public String toString() {
-        return String.format("%s, %s", rowNumber, content);
+        return String.format("%s: %s", rowNumber, content);
     }
 }

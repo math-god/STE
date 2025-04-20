@@ -75,7 +75,7 @@ public class Application {
         editorTransactions.put(Action.MOVE_CURSOR_LEFT, new Transaction(List.of(moveLeftCommand)));
         editorTransactions.put(Action.MOVE_CURSOR_UP, new Transaction(List.of(moveUpCommand)));
         editorTransactions.put(Action.MOVE_CURSOR_DOWN, new Transaction(List.of(moveDownCommand)));
-        editorTransactions.put(Action.ENTER_NEW_ROW, new Transaction(List.of(addCharCommand, addRowCommand, moveCursorAtStartCommand)));
+        editorTransactions.put(Action.ENTER_NEW_ROW, new Transaction(List.of(addRowCommand, addCharCommand, moveCursorAtStartCommand)));
         editorTransactions.put(Action.BACKSPACE_DELETE, new Transaction(List.of(moveLeftCommand, deleteCharCommand)));
         editorTransactions.put(Action.DEL_DELETE, new Transaction(List.of(deleteCharCommand)));
 
