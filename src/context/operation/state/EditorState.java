@@ -42,8 +42,9 @@ public class EditorState implements State {
     @Override
     public int deleteCharAtCursorAndGetChar() {
         var row = storage.get(cursorRowIndex);
-        var ch = row.charAt(cursorColumnIndex);
+        if (cursorColumnIndex > row.length() - 1) return AsciiConstant.NULL;
 
+        var ch = row.charAt(cursorColumnIndex);
         row.deleteCharAt(cursorColumnIndex);
         size--;
         return ch;
