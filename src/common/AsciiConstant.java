@@ -9,5 +9,4 @@ public class AsciiConstant {
     public final static int TAB = 9;
     public final static int SPACE = 32;
     public final static int NULL = 0;
-
 }

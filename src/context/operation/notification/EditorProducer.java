@@ -52,14 +52,4 @@ public class EditorProducer implements Producer {
 
         consumers.forEach(m -> m.setInfo(info));
     }
-
-    private String storageRowToString(Collection<Integer> row) {
-        StringBuilder str = new StringBuilder();
-        for (int ch : row) {
-            if (ch == AsciiConstant.CARRIAGE_RETURN) ch = 78;
-            str.append((char) ch);
-        }
-
-        return str.toString();
-    }
 }

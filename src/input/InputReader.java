@@ -32,9 +32,9 @@ public class InputReader {
         return inputChar;
     }
 
-    public Boolean read() throws IOException {
+    public boolean read() throws IOException {
         var key = readKey();
-        if (key == 'q') return false;
+        if (key == 'q') return false; //fixme delete
         if (escapeSequenceBuilder.isEscapeSequence(key)) {
             Integer replacer;
             do {
@@ -53,7 +53,7 @@ public class InputReader {
         return true;
     }
 
-    private Action getActionByChar(Integer ch) throws IllegalArgumentException {
+    private Action getActionByChar(int ch) throws IllegalArgumentException {
         if (ch >= AsciiConstant.FIRST_PRINTABLE_CHAR && ch <= AsciiConstant.LAST_PRINTABLE_CHAR)
             return Action.INPUT_PRINTABLE_CHAR;
         if (ch == AsciiConstant.BACKSPACE) return Action.BACKSPACE_DELETE;
