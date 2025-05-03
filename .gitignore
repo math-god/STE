@@ -5,6 +5,8 @@ META-INF/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+/local/
+/test/
 
 ### Eclipse ###
 .apt_generated
@@ -30,4 +32,3 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-/local/

@@ -5,14 +5,14 @@ import common.PrimitiveOperation;
 import context.operation.command.Command;
 import context.operation.notification.Consumer;
 import context.operation.notification.EditorProducer;
-import context.operation.state.EditorState;
+import context.operation.state.State;
 
 public class MoveCursorCommand implements Command {
-    private final EditorState state;
+    private final State state;
     private final EditorProducer producer;
     private final Action action;
 
-    public MoveCursorCommand(EditorState state, Consumer consumer, Action action) {
+    public MoveCursorCommand(State state, Consumer consumer, Action action) {
         this.state = state;
         this.producer = new EditorProducer(consumer);
         this.action = action;

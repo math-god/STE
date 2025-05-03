@@ -4,16 +4,16 @@ import common.PrimitiveOperation;
 import context.operation.command.UndoCommand;
 import context.operation.notification.Consumer;
 import context.operation.notification.EditorProducer;
-import context.operation.state.EditorState;
+import context.operation.state.State;
 
 public class MoveCursorAtStartCommand implements UndoCommand {
 
     private int rowIndex;
     private int columnIndex;
-    private final EditorState state;
+    private final State state;
     private final EditorProducer producer;
 
-    public MoveCursorAtStartCommand(EditorState state, Consumer consumer) {
+    public MoveCursorAtStartCommand(State state, Consumer consumer) {
         this.state = state;
         this.producer = new EditorProducer(consumer);
     }

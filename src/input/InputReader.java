@@ -54,7 +54,7 @@ public class InputReader {
     }
 
     private Action getActionByChar(Integer ch) throws IllegalArgumentException {
-        if (ch >= AsciiConstant.FIRST_PRINTED_CHAR && ch <= AsciiConstant.LAST_PRINTED_CHAR)
+        if (ch >= AsciiConstant.FIRST_PRINTABLE_CHAR && ch <= AsciiConstant.LAST_PRINTABLE_CHAR)
             return Action.INPUT_PRINTABLE_CHAR;
         if (ch == AsciiConstant.BACKSPACE) return Action.BACKSPACE_DELETE;
         if (ch == EscapeReplaceCode.DEL) return Action.DEL_DELETE;
@@ -62,7 +62,7 @@ public class InputReader {
         if (ch == EscapeReplaceCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;
         if (ch == EscapeReplaceCode.UP_ARROW) return Action.MOVE_CURSOR_UP;
         if (ch == EscapeReplaceCode.DOWN_ARROW) return Action.MOVE_CURSOR_DOWN;
-        if (ch == AsciiConstant.ENTER) return Action.ENTER_NEW_ROW;
+        if (ch == AsciiConstant.CARRIAGE_RETURN) return Action.ENTER_NEW_ROW;
 
         throw new IllegalArgumentException("Unknown char: " + ch + " for " + currentContext);
     }

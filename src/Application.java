@@ -2,11 +2,12 @@ import common.Action;
 import context.ContextType;
 import context.operation.command.editorcommand.*;
 import context.operation.command.transaction.Transaction;
+import context.operation.state.EditorState;
+import context.operation.state.State;
 import input.InputReader;
 import output.TerminalWriter;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
-import context.operation.state.EditorState;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -58,7 +59,7 @@ public class Application {
         setCursorAtStart();
     }
 
-    private static HashMap<Action, Transaction> initEditorTransactions(EditorState editorState) {
+    private static HashMap<Action, Transaction> initEditorTransactions(State editorState) {
         var editorTransactions = new HashMap<Action, Transaction>();
 
         var addCharCommand = new AddCharCommand(editorState, terminalWriter);

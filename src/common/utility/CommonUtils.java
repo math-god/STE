@@ -9,4 +9,24 @@ public class CommonUtils {
 
         return list.get(index);
     }
+
+    public static int getSum(List<Integer> numbers, int from, int to) {
+        var sum = 0;
+        var boundedArray = boundList(numbers, from, to);
+        for (var num : boundedArray) {
+            sum += num;
+        }
+        return sum;
+    }
+
+    private static int[] boundList(List<Integer> numbers, int from, int to) {
+        var newArray = new int[to - from];
+        var newArrayIndex = 0;
+        for (int i = from; i < to; i++) {
+            newArray[newArrayIndex] = numbers.get(i);
+            newArrayIndex++;
+        }
+
+        return newArray;
+    }
 }

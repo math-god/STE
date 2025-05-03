@@ -4,10 +4,8 @@ import common.AsciiConstant;
 import common.PrimitiveOperation;
 import context.dto.CursorNotificationModel;
 import context.dto.TextNotificationModel;
-import context.dto.RowContentModel;
-import context.operation.state.EditorState;
+import context.operation.state.State;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -34,23 +32,18 @@ public class EditorProducer implements Producer {
         consumers.remove(consumer);
     }
 
-    public void notifyTextChanged(PrimitiveOperation operation, EditorState state) {
+    public void notifyTextChanged(PrimitiveOperation operation, State state) {
         var info = new TextNotificationModel();
 
-        var changedRowsIndexes = state.getChangedStorageRowIndexesWithClearing();
-        var rowsContent = new ArrayList<RowContentModel>();
-
-        for (var rowIndex : changedRowsIndexes) {
-            rowsContent.add(new RowContentModel(rowIndex, storageRowToString(state.getStorageRow(rowIndex))));
-        }
+        var text = state.getStringRepresentation();
 
         info.setOperation(operation);
-        info.setRowsContent(rowsContent);
+        info.setText(text);
 
         consumers.forEach(m -> m.setInfo(info));
     }
 
-    public void notifyCursorChanged(PrimitiveOperation operation, EditorState state) {
+    public void notifyCursorChanged(PrimitiveOperation operation, State state) {
         var info = new CursorNotificationModel();
 
         info.setOperation(operation);
@@ -63,7 +56,7 @@ public class EditorProducer implements Producer {
     private String storageRowToString(Collection<Integer> row) {
         StringBuilder str = new StringBuilder();
         for (int ch : row) {
-            if (ch == AsciiConstant.ENTER) ch = 78;
+            if (ch == AsciiConstant.CARRIAGE_RETURN) ch = 78;
             str.append((char) ch);
         }
 

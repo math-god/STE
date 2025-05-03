@@ -4,17 +4,17 @@ import common.PrimitiveOperation;
 import context.operation.command.UndoCommand;
 import context.operation.notification.Consumer;
 import context.operation.notification.EditorProducer;
-import context.operation.state.EditorState;
+import context.operation.state.State;
 import input.InputReader;
 
 public class AddCharCommand implements UndoCommand {
 
     private int rowIndex;
     private int columnIndex;
-    private final EditorState editorState;
+    private final State editorState;
     private final EditorProducer producer;
 
-    public AddCharCommand(EditorState editorState, Consumer consumer) {
+    public AddCharCommand(State editorState, Consumer consumer) {
         this.producer = new EditorProducer(consumer);
         this.editorState = editorState;
     }

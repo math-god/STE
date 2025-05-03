@@ -1,15 +1,13 @@
 package context.dto;
 
-import java.util.Collection;
-
 public class TextNotificationModel extends ContextNotificationModel {
-    private Collection<RowContentModel> rowsContent;
+    private String text;
 
-    public Collection<RowContentModel> getRowsContent() {
-        return rowsContent;
+    public String getText() {
+        return text;
     }
 
-    public void setRowsContent(Collection<RowContentModel> rowsContent) {
-        this.rowsContent = rowsContent;
+    public void setText(String text) {
+        this.text = text;
     }
 }

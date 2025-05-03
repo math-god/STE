@@ -1,98 +1,88 @@
 package context.operation.state;
 
 import common.AsciiConstant;
-import common.utility.CommonUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 
-public class EditorState {
-
+public class EditorState implements State {
     private int cursorRowIndex = 0;
     private int cursorColumnIndex = 0;
     private int cursorColumnEdgeIndex = 0;
 
-    private final LinkedList<LinkedList<Integer>> storage;
-    private final LinkedList<Integer> testStor;
-    private final Collection<Integer> changedStorageRowIndexes = new ArrayList<>();
+    private final LinkedList<StringBuilder> storage;
+
     private int size;
+    private int rowsCount = 1;
 
     {
         storage = new LinkedList<>();
-        storage.add(new LinkedList<>());
-
-        testStor = new LinkedList<>();
+        storage.add(new StringBuilder());
     }
 
-    public int getTextSize() {
-        return size;
-    }
-
-    public void addChar(Integer ch) {
+    public void addChar(int ch) {
         var row = storage.get(cursorRowIndex);
-
-        if (row.size() - 1 < cursorColumnIndex) {
-            row.add(ch);
+        var maxColumnIndex = row.length();
+        if (maxColumnIndex <= cursorColumnIndex) {
+            row.append((char) ch);
         } else {
-            row.add(cursorColumnIndex, ch);
+            row.insert(cursorColumnIndex, (char) ch);
         }
-
         size++;
-        changedStorageRowIndexes.add(cursorRowIndex);
     }
 
     public void deleteChar(int rowIndex, int columnIndex) {
         var row = storage.get(rowIndex);
 
-        row.remove(columnIndex);
+        row.deleteCharAt(columnIndex);
         size--;
     }
 
     public int deleteCharAtCursorAndGetChar() {
         var row = storage.get(cursorRowIndex);
-        if (CommonUtils.getElementOrNull(row, cursorColumnIndex) == null) return AsciiConstant.NULL;
+        if (row.isEmpty()) return AsciiConstant.NULL;
+        if (cursorColumnIndex < 0 || cursorColumnIndex > row.length() - 1) return AsciiConstant.NULL;
 
-        var ch = row.remove(cursorColumnIndex);
-        changedStorageRowIndexes.add(cursorRowIndex);
-
+        size--;
+        var ch = row.charAt(cursorColumnIndex);
+        row.deleteCharAt(cursorColumnIndex);
         return ch;
     }
 
     public int addRow() {
         var fromRow = storage.get(cursorRowIndex);
+        var modifiedFromRow = new StringBuilder(fromRow.substring(0, cursorColumnIndex));
+        var toRow = new StringBuilder(fromRow.substring(cursorColumnIndex, fromRow.length()));
 
-        var modifiedFromRow = fromRow.subList(0, cursorColumnIndex);
-        var toRow = new LinkedList<>(fromRow.subList(cursorColumnIndex, fromRow.size()));
-
-        storage.set(cursorRowIndex, (new LinkedList<>(modifiedFromRow)));
-        if (cursorRowIndex == storage.size() - 1) {
+        storage.set(cursorRowIndex, modifiedFromRow);
+        var maxRowIndex = storage.size() - 1;
+        if (cursorRowIndex == maxRowIndex) {
             storage.add(toRow);
         } else {
             storage.add(cursorRowIndex + 1, toRow);
         }
 
-        for (var i = cursorRowIndex; i < storage.size(); i++) {
-            changedStorageRowIndexes.add(i);
-        }
-
+        rowsCount++;
         return storage.indexOf(toRow);
+    }
+
+    public void joinRows(int firstRowIndex, int secondRowIndex) {
+        var firstRow = storage.get(firstRowIndex);
+        var secondRow = storage.get(secondRowIndex);
+
+        firstRow.append(secondRow);
     }
 
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
-
-        for (var i = rowIndex; i < storage.size(); i++) {
-            changedStorageRowIndexes.add(i);
-        }
+        rowsCount--;
     }
 
     public boolean moveCursorRight() {
         var currentRow = storage.get(cursorRowIndex);
-        currentRow.removeIf(m -> m == AsciiConstant.ENTER);
-        if (cursorColumnIndex == currentRow.size() && cursorRowIndex == storage.size() - 1) return false;
+        if (cursorColumnIndex == currentRow.length() && cursorRowIndex == storage.size() - 1) return false;
 
-        if (cursorColumnIndex == storage.get(cursorRowIndex).size() && cursorRowIndex < storage.size() - 1) {
+        if (storage.get(cursorRowIndex).charAt(cursorColumnIndex) == AsciiConstant.CARRIAGE_RETURN ||
+                cursorColumnIndex == storage.get(cursorRowIndex).length() && cursorRowIndex < storage.size() - 1) {
             cursorRowIndex++;
             cursorColumnIndex = 0;
             cursorColumnEdgeIndex = 0;
@@ -109,8 +99,8 @@ public class EditorState {
 
         if (cursorColumnIndex == 0 && cursorRowIndex > 0) {
             cursorRowIndex--;
-            cursorColumnIndex = storage.get(cursorRowIndex).size();
-            cursorColumnEdgeIndex = storage.get(cursorRowIndex).size();
+            cursorColumnIndex = storage.get(cursorRowIndex).length() - 1;
+            cursorColumnEdgeIndex = storage.get(cursorRowIndex).length() - 1;
         } else {
             cursorColumnIndex--;
             cursorColumnEdgeIndex--;
@@ -122,8 +112,8 @@ public class EditorState {
     public boolean moveCursorUp() {
         if (cursorRowIndex == 0) return false;
 
-        var previousRowSize = storage.get(cursorRowIndex - 1).size();
-        cursorColumnIndex = Math.min(previousRowSize, cursorColumnEdgeIndex);
+        var previousRowSize = storage.get(cursorRowIndex - 1).length();
+        cursorColumnIndex = Math.min(previousRowSize - 1, cursorColumnEdgeIndex);
 
         cursorRowIndex--;
 
@@ -133,34 +123,19 @@ public class EditorState {
     public boolean moveCursorDown() {
         if (cursorRowIndex == storage.size() - 1) return false;
 
-        var nextRowSize = storage.get(cursorRowIndex + 1).size();
-        cursorColumnIndex = Math.min(nextRowSize, cursorColumnEdgeIndex);
+        var nextRowSize = storage.get(cursorRowIndex + 1).length();
+        cursorColumnIndex = Math.min(nextRowSize - 1, cursorColumnEdgeIndex);
 
         cursorRowIndex++;
 
         return true;
     }
 
-    public boolean isCursorNotAtStart() {
-        return cursorColumnIndex > 0;
-    }
+    public String getStringRepresentation() {
+        var result = new StringBuilder();
+        storage.forEach(result::append);
 
-    public Collection<Integer> getStorageRow(Integer rowIndex) {
-        return storage.get(rowIndex);
-    }
-
-    public Collection<Collection<Integer>> getStorageRows(Collection<Integer> rowIndexes) {
-        var rows = new ArrayList<Collection<Integer>>();
-        rowIndexes.forEach(m -> rows.add(storage.get(m)));
-
-        return rows;
-    }
-
-    public Collection<Integer> getChangedStorageRowIndexesWithClearing() {
-        var changedRows = new ArrayList<>(changedStorageRowIndexes);
-        changedStorageRowIndexes.clear();
-
-        return changedRows;
+        return result.toString();
     }
 
     public Integer getCursorRowIndex() {
@@ -185,5 +160,13 @@ public class EditorState {
         this.cursorColumnEdgeIndex = column;
 
         return true;
+    }
+
+    public int getTextSize() {
+        return size;
+    }
+
+    public int getRowsCount() {
+        return rowsCount;
     }
 }

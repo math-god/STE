@@ -4,15 +4,15 @@ import common.PrimitiveOperation;
 import context.operation.command.UndoCommand;
 import context.operation.notification.Consumer;
 import context.operation.notification.EditorProducer;
-import context.operation.state.EditorState;
+import context.operation.state.State;
 
 public class AddRowCommand implements UndoCommand {
 
     private int rowIndex;
-    private final EditorState state;
+    private final State state;
     private final EditorProducer producer;
 
-    public AddRowCommand(EditorState state, Consumer consumer) {
+    public AddRowCommand(State state, Consumer consumer) {
         this.state = state;
         this.producer = new EditorProducer(consumer);
     }
