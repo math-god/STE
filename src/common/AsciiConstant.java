@@ -13,6 +13,7 @@ public class AsciiConstant {
     public final static int TAB = 9;
     public final static int SPACE = 32;
     public final static int NULL = 0;
+    public final static int DEVICE_CONTROL_1 = 17;
 
     public final static Collection<Integer> LIST;
 

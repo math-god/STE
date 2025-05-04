@@ -48,12 +48,13 @@ public class InputReader {
         var bytes = readKey();
         if (bytes.length == 1) {
             inputChar = bytes[0];
-            if (inputChar == 'q') return false; //fixme delete
         } else {
             inputChar = KEY_REPLACER.get(Arrays.hashCode(bytes));
         }
 
         var action = getActionByChar(inputChar);
+        if (action == Action.QUIT) return false;
+
         var transaction = transactions.get(currentContext).get(action);
         transaction.execute();
         return true;
@@ -63,12 +64,14 @@ public class InputReader {
         if (ch >= AsciiConstant.FIRST_PRINTABLE_CHAR && ch <= AsciiConstant.LAST_PRINTABLE_CHAR)
             return Action.INPUT_PRINTABLE_CHAR;
         if (ch == AsciiConstant.BACKSPACE) return Action.BACKSPACE_DELETE;
+        if (ch == AsciiConstant.CARRIAGE_RETURN) return Action.ENTER_NEW_ROW;
+        if (ch == AsciiConstant.DEVICE_CONTROL_1) return Action.QUIT;
+
         if (ch == ReplaceCode.DEL) return Action.DEL_DELETE;
         if (ch == ReplaceCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;
         if (ch == ReplaceCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;
         if (ch == ReplaceCode.UP_ARROW) return Action.MOVE_CURSOR_UP;
         if (ch == ReplaceCode.DOWN_ARROW) return Action.MOVE_CURSOR_DOWN;
-        if (ch == AsciiConstant.CARRIAGE_RETURN) return Action.ENTER_NEW_ROW;
         if (ch == ReplaceCode.CTRL_Z) return Action.UNDO;
 
         throw new IllegalArgumentException("Unknown char: " + ch + " for " + currentContext);
