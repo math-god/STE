@@ -19,32 +19,28 @@ public class MoveCursorCommand implements Command {
     }
 
     @Override
-    public boolean execute() {
+    public void execute() {
         PrimitiveOperation operation;
-        boolean result;
-
         switch (action) {
             case MOVE_CURSOR_UP -> {
-                result = state.moveCursorUp();
                 operation = PrimitiveOperation.CURSOR_UP;
+                state.moveCursorUp();
             }
             case MOVE_CURSOR_DOWN -> {
-                result = state.moveCursorDown();
                 operation = PrimitiveOperation.CURSOR_DOWN;
+                state.moveCursorDown();
             }
             case MOVE_CURSOR_LEFT -> {
-                result = state.moveCursorLeft();
                 operation = PrimitiveOperation.CURSOR_LEFT;
+                state.moveCursorLeft();
             }
             case MOVE_CURSOR_RIGHT -> {
-                result = state.moveCursorRight();
                 operation = PrimitiveOperation.CURSOR_RIGHT;
+                state.moveCursorRight();
             }
             default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
         }
 
         producer.notifyCursorChanged(operation, state);
-
-        return result;
     }
 }

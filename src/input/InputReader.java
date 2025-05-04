@@ -4,7 +4,8 @@ import common.Action;
 import common.AsciiConstant;
 import common.ReplaceCode;
 import context.ContextType;
-import context.operation.command.transaction.Transaction;
+import context.operation.command.Command;
+import context.operation.command.UndoCommand;
 import log.FileLogger;
 
 import java.io.IOException;
@@ -16,7 +17,9 @@ public class InputReader {
 
     private static int inputChar;
     private ContextType currentContext;
-    private final Map<ContextType, HashMap<Action, Transaction>> transactions;
+    private final Map<ContextType, HashMap<Action, Command>> commands;
+    private final LinkedList<UndoCommand> commandLog = new LinkedList<>();
+    private int undoStep = 0;
     private final static Map<Integer, Integer> KEY_REPLACER;
 
     private final static int MAX_SIZE_OF_KEY = 4;
@@ -33,8 +36,8 @@ public class InputReader {
         KEY_REPLACER.put(Arrays.hashCode("".getBytes(StandardCharsets.UTF_8)), ReplaceCode.CTRL_Z);
     }
 
-    public InputReader(Map<ContextType, HashMap<Action, Transaction>> transactions) {
-        this.transactions = transactions;
+    public InputReader(Map<ContextType, HashMap<Action, Command>> commands) {
+        this.commands = commands;
 
         // default value
         currentContext = ContextType.EDITOR;
@@ -55,8 +58,21 @@ public class InputReader {
         var action = getActionByChar(inputChar);
         if (action == Action.QUIT) return false;
 
-        var transaction = transactions.get(currentContext).get(action);
-        transaction.execute();
+        var command = commands.get(currentContext).get(action);
+        if (action == Action.UNDO) {
+            var iterator = commandLog.listIterator(undoStep);
+            if (iterator.hasNext()) {
+                var undoCommand = iterator.next();
+                undoCommand.unexecute();
+                undoStep++;
+            }
+        } else {
+            command.execute();
+            if (command instanceof UndoCommand) {
+                commandLog.addFirst(((UndoCommand) command).copy());
+                undoStep = 0;
+            }
+        }
         return true;
     }
 

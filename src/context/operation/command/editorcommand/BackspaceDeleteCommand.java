@@ -7,19 +7,27 @@ import context.operation.notification.Consumer;
 import context.operation.notification.EditorProducer;
 import context.operation.state.State;
 
-public class DeleteCharCommand implements UndoCommand {
+public class BackspaceDeleteCommand implements UndoCommand {
 
     private int ch;
     private final State state;
     private final EditorProducer producer;
 
-    public DeleteCharCommand(State state, Consumer consumer) {
+    public BackspaceDeleteCommand(State state, Consumer consumer) {
         this.state = state;
         this.producer = new EditorProducer(consumer);
     }
 
+    private BackspaceDeleteCommand(BackspaceDeleteCommand obj) {
+        ch = obj.ch;
+        state = obj.state;
+        producer = obj.producer;
+    }
+
     @Override
-    public boolean execute() {
+    public void execute() {
+        state.moveCursorLeft();
+
         ch = state.deleteCharAtCursorAndGetChar();
         if (ch == AsciiConstant.CARRIAGE_RETURN) {
             var firstRowIndex = state.getCursorRowIndex();
@@ -29,8 +37,7 @@ public class DeleteCharCommand implements UndoCommand {
         }
 
         producer.notifyTextChanged(PrimitiveOperation.DELETE_CHAR, state);
-
-        return ch != AsciiConstant.NULL;
+        producer.notifyCursorChanged(PrimitiveOperation.CURSOR_LEFT, state);
     }
 
     @Override
@@ -38,5 +45,10 @@ public class DeleteCharCommand implements UndoCommand {
         state.addChar(ch);
 
         producer.notifyTextChanged(PrimitiveOperation.ADD_CHAR, state);
+    }
+
+    @Override
+    public UndoCommand copy() {
+        return new BackspaceDeleteCommand(this);
     }
 }
