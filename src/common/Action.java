@@ -11,6 +11,7 @@ public enum Action {
     MOVE_CURSOR,
     ENTER_NEW_ROW,
     INPUT_TAB,
+    UNDO,
 
     NONE
 }

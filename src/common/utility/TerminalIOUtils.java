@@ -27,8 +27,4 @@ public class TerminalIOUtils {
                 RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE
         );
     }
-
-    public static int readKey() throws IOException {
-        return System.in.read();
-    }
 }
