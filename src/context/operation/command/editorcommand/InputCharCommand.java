@@ -6,16 +6,16 @@ import context.operation.state.State;
 import input.InputReader;
 import output.Consumer;
 
-public class InputPrintableCharCommand extends UndoCommand {
+public class InputCharCommand extends UndoCommand {
 
     private int rowIndex;
     private int columnIndex;
 
-    public InputPrintableCharCommand(State state, Consumer consumer) {
+    public InputCharCommand(State state, Consumer consumer) {
         super(state, consumer);
     }
 
-    private InputPrintableCharCommand(InputPrintableCharCommand obj) {
+    private InputCharCommand(InputCharCommand obj) {
         super(obj.state, obj.consumer);
         rowIndex = obj.rowIndex;
         columnIndex = obj.columnIndex;
@@ -45,7 +45,7 @@ public class InputPrintableCharCommand extends UndoCommand {
 
     @Override
     public UndoCommand copy() {
-        return new InputPrintableCharCommand(this);
+        return new InputCharCommand(this);
     }
 
     @Override

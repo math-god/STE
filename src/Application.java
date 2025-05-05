@@ -61,14 +61,14 @@ public class Application {
     private static HashMap<Action, Command> initEditorTransactions(State editorState) {
         var editorCommands = new HashMap<Action, Command>();
 
-        editorCommands.put(Action.INPUT_PRINTABLE_CHAR, new InputPrintableCharCommand(editorState, terminalWriter));
+        editorCommands.put(Action.INPUT_PRINTABLE_CHAR, new InputCharCommand(editorState, terminalWriter));
         editorCommands.put(Action.MOVE_CURSOR_RIGHT, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_RIGHT));
         editorCommands.put(Action.MOVE_CURSOR_LEFT, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_LEFT));
         editorCommands.put(Action.MOVE_CURSOR_UP, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_UP));
         editorCommands.put(Action.MOVE_CURSOR_DOWN, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_DOWN));
         editorCommands.put(Action.ENTER_NEW_ROW, new EnterNewRowCommand(editorState, terminalWriter));
-        editorCommands.put(Action.BACKSPACE_DELETE, new BackspaceDeleteCommand(editorState, terminalWriter));
-        editorCommands.put(Action.DEL_DELETE, new DelDeleteCommand(editorState, terminalWriter));
+        editorCommands.put(Action.BACKSPACE_DELETE, new DeleteCharCommand(editorState, terminalWriter, DeleteCharCommand.Type.BACKSPACE));
+        editorCommands.put(Action.DEL_DELETE, new DeleteCharCommand(editorState, terminalWriter, DeleteCharCommand.Type.DEL));
 
         return editorCommands;
     }
