@@ -1,10 +1,9 @@
 package output;
 
 import common.AsciiConstant;
-import context.dto.ContextNotificationModel;
-import context.dto.CursorNotificationModel;
-import context.dto.TextNotificationModel;
-import context.operation.notification.Consumer;
+import context.dto.CursorTerminalWriteModel;
+import context.dto.TerminalWriteModel;
+import context.dto.TextTerminalWriteModel;
 import log.FileLogger;
 
 import java.util.Collection;
@@ -15,14 +14,14 @@ import static common.utility.TerminalIOUtils.printAll;
 import static common.utility.TerminalIOUtils.setCursor;
 
 public class TerminalWriter implements Consumer {
-    private final Collection<ContextNotificationModel> notifications = new LinkedList<>();
+    private final Collection<TerminalWriteModel> models = new LinkedList<>();
     private final Logger logger = FileLogger.getFileLogger(TerminalWriter.class.getName(), "terminal-writer-log.txt");
 
     public void write() {
-        notifications.forEach(info -> {
+        models.forEach(info -> {
             switch (info.getOperation().getGroup()) {
                 case TEXT -> {
-                    var actualContextInfo = (TextNotificationModel) info;
+                    var actualContextInfo = (TextTerminalWriteModel) info;
                     var text = actualContextInfo.getText();
 
                     var normalizedText = normalizeText(text);
@@ -30,18 +29,18 @@ public class TerminalWriter implements Consumer {
                     printAll(normalizedText);
                 }
                 case CURSOR -> {
-                    var actualContextInfo = (CursorNotificationModel) info;
+                    var actualContextInfo = (CursorTerminalWriteModel) info;
                     setCursor(actualContextInfo.getCursorRowIndex(), actualContextInfo.getCursorColumnIndex());
                 }
             }
         });
 
-        notifications.clear();
+        models.clear();
     }
 
     @Override
-    public void setInfo(ContextNotificationModel info) {
-        notifications.add(info);
+    public void consume(TerminalWriteModel info) {
+        models.add(info);
     }
 
     private String normalizeText(String text) {

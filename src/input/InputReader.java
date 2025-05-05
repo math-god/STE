@@ -97,7 +97,6 @@ public class InputReader {
         var rawArr = new byte[MAX_SIZE_OF_KEY];
         var byteCount = System.in.read(rawArr);
         if (byteCount == -1) return new byte[]{};
-        if (byteCount == 1) return new byte[]{rawArr[0]};
 
         var resArr = new byte[byteCount];
         System.arraycopy(rawArr, 0, resArr, 0, byteCount);

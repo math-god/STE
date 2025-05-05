@@ -1,6 +1,6 @@
 package context.dto;
 
-public class CursorNotificationModel extends ContextNotificationModel {
+public class CursorTerminalWriteModel extends TerminalWriteModel {
     private Integer cursorRowIndex;
     private Integer cursorColumnIndex;
 

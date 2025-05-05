@@ -3,25 +3,20 @@ package context.operation.command.editorcommand;
 import common.AsciiConstant;
 import common.PrimitiveOperation;
 import context.operation.command.UndoCommand;
-import context.operation.notification.Consumer;
-import context.operation.notification.EditorProducer;
 import context.operation.state.State;
+import output.Consumer;
 
-public class DelDeleteCommand implements UndoCommand {
+public class DelDeleteCommand extends UndoCommand {
 
     private int ch;
-    private final State state;
-    private final EditorProducer producer;
 
     public DelDeleteCommand(State state, Consumer consumer) {
-        this.state = state;
-        this.producer = new EditorProducer(consumer);
+        super(state, consumer);
     }
 
     private DelDeleteCommand(DelDeleteCommand obj) {
+        super(obj.state, obj.consumer);
         ch = obj.ch;
-        state = obj.state;
-        producer = obj.producer;
     }
 
     @Override
@@ -34,7 +29,7 @@ public class DelDeleteCommand implements UndoCommand {
             state.deleteRow(secondRowIndex);
         }
 
-        producer.notifyTextChanged(PrimitiveOperation.DELETE_CHAR, state);
+        consumer.consume(getWriteModel(PrimitiveOperation.DELETE_CHAR));
     }
 
     @Override

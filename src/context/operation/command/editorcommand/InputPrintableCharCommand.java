@@ -2,28 +2,23 @@ package context.operation.command.editorcommand;
 
 import common.PrimitiveOperation;
 import context.operation.command.UndoCommand;
-import context.operation.notification.Consumer;
-import context.operation.notification.EditorProducer;
 import context.operation.state.State;
 import input.InputReader;
+import output.Consumer;
 
-public class InputPrintableCharCommand implements UndoCommand {
+public class InputPrintableCharCommand extends UndoCommand {
 
     private int rowIndex;
     private int columnIndex;
-    private final State state;
-    private final EditorProducer producer;
 
     public InputPrintableCharCommand(State state, Consumer consumer) {
-        this.producer = new EditorProducer(consumer);
-        this.state = state;
+        super(state, consumer);
     }
 
     private InputPrintableCharCommand(InputPrintableCharCommand obj) {
+        super(obj.state, obj.consumer);
         rowIndex = obj.rowIndex;
         columnIndex = obj.columnIndex;
-        state = obj.state;
-        producer = obj.producer;
     }
 
     @Override
@@ -34,8 +29,8 @@ public class InputPrintableCharCommand implements UndoCommand {
 
         state.moveCursorRight();
 
-        producer.notifyTextChanged(PrimitiveOperation.ADD_CHAR, state);
-        producer.notifyCursorChanged(PrimitiveOperation.CURSOR_RIGHT, state);
+        consumer.consume(getWriteModel(PrimitiveOperation.ADD_CHAR));
+        consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_RIGHT));
     }
 
     @Override
@@ -44,8 +39,8 @@ public class InputPrintableCharCommand implements UndoCommand {
         state.setCursorRowIndex(rowIndex);
         state.setCursorColumnIndex(columnIndex);
 
-        producer.notifyTextChanged(PrimitiveOperation.DELETE_CHAR, state);
-        producer.notifyCursorChanged(PrimitiveOperation.SET_CURSOR, state);
+        consumer.consume(getWriteModel(PrimitiveOperation.DELETE_CHAR));
+        consumer.consume(getWriteModel(PrimitiveOperation.SET_CURSOR));
     }
 
     @Override

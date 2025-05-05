@@ -2,8 +2,15 @@ package context.dto;
 
 import common.PrimitiveOperation;
 
-public abstract class ContextNotificationModel {
+public class TerminalWriteModel {
     private PrimitiveOperation operation;
+
+    public static TerminalWriteModel none() {
+        var model = new TerminalWriteModel();
+        model.setOperation(PrimitiveOperation.NONE);
+
+        return model;
+    }
 
     public PrimitiveOperation getOperation() {
         return operation;

@@ -3,25 +3,20 @@ package context.operation.command.editorcommand;
 import common.AsciiConstant;
 import common.PrimitiveOperation;
 import context.operation.command.UndoCommand;
-import context.operation.notification.Consumer;
-import context.operation.notification.EditorProducer;
 import context.operation.state.State;
+import output.Consumer;
 
-public class BackspaceDeleteCommand implements UndoCommand {
+public class BackspaceDeleteCommand extends UndoCommand {
 
     private int ch;
-    private final State state;
-    private final EditorProducer producer;
 
     public BackspaceDeleteCommand(State state, Consumer consumer) {
-        this.state = state;
-        this.producer = new EditorProducer(consumer);
+        super(state, consumer);
     }
 
     private BackspaceDeleteCommand(BackspaceDeleteCommand obj) {
+        super(obj.state, obj.consumer);
         ch = obj.ch;
-        state = obj.state;
-        producer = obj.producer;
     }
 
     @Override
@@ -36,15 +31,17 @@ public class BackspaceDeleteCommand implements UndoCommand {
             state.deleteRow(secondRowIndex);
         }
 
-        producer.notifyTextChanged(PrimitiveOperation.DELETE_CHAR, state);
-        producer.notifyCursorChanged(PrimitiveOperation.CURSOR_LEFT, state);
+        consumer.consume(getWriteModel(PrimitiveOperation.DELETE_CHAR));
+        consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_LEFT));
     }
 
     @Override
     public void unexecute() {
         state.addChar(ch);
+        state.moveCursorRight();
 
-        producer.notifyTextChanged(PrimitiveOperation.ADD_CHAR, state);
+        consumer.consume(getWriteModel(PrimitiveOperation.ADD_CHAR));
+        consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_RIGHT));
     }
 
     @Override

@@ -1,6 +1,6 @@
 package context.dto;
 
-public class TextNotificationModel extends ContextNotificationModel {
+public class TextTerminalWriteModel extends TerminalWriteModel {
     private String text;
 
     public String getText() {

@@ -3,18 +3,15 @@ package context.operation.command.editorcommand;
 import common.Action;
 import common.PrimitiveOperation;
 import context.operation.command.Command;
-import context.operation.notification.Consumer;
-import context.operation.notification.EditorProducer;
 import context.operation.state.State;
+import output.Consumer;
 
-public class MoveCursorCommand implements Command {
-    private final State state;
-    private final EditorProducer producer;
+public class MoveCursorCommand extends Command {
+
     private final Action action;
 
     public MoveCursorCommand(State state, Consumer consumer, Action action) {
-        this.state = state;
-        this.producer = new EditorProducer(consumer);
+        super(state, consumer);
         this.action = action;
     }
 
@@ -41,6 +38,6 @@ public class MoveCursorCommand implements Command {
             default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
         }
 
-        producer.notifyCursorChanged(operation, state);
+        consumer.consume(getWriteModel(operation));
     }
 }

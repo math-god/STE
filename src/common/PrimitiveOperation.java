@@ -4,6 +4,7 @@ public enum PrimitiveOperation {
     ADD_CHAR(Group.TEXT),
     DELETE_CHAR(Group.TEXT),
     ADD_ROW(Group.TEXT),
+    DELETE_ROW(Group.TEXT),
 
     CURSOR_UP(Group.CURSOR),
     CURSOR_DOWN(Group.CURSOR),
