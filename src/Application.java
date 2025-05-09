@@ -4,6 +4,7 @@ import common.terminal.WindowsTerminal;
 import context.ContextType;
 import context.operation.command.Command;
 import context.operation.command.editor.*;
+import context.operation.command.fileexplorer.ItemSelectionCommand;
 import context.operation.command.fileexplorer.OpenFileCommand;
 import context.operation.state.EditorState;
 import context.operation.state.FileExplorerState;
@@ -14,8 +15,8 @@ import output.TerminalWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
-import static common.utility.TerminalIOUtils.eraseScreen;
-import static common.utility.TerminalIOUtils.setCursorAtStart;
+import static common.escape.Escape.ERASE_SCREEN;
+import static common.escape.Escape.SET_CURSOR_AT_START;
 
 public class Application {
     private static InputReader inputReader;
@@ -36,8 +37,8 @@ public class Application {
                 terminalWriter.write();
             }
         } catch (IllegalArgumentException | IOException ex) {
-            eraseScreen();
-            setCursorAtStart();
+            System.out.print(ERASE_SCREEN);
+            System.out.print(SET_CURSOR_AT_START);
             System.out.print(ex.getMessage());
         }
 
@@ -55,8 +56,8 @@ public class Application {
         commands.put(ContextType.FILE_EXPLORER, initFileExplorerCommands(new FileExplorerState()));
         inputReader = new InputReader(commands);
 
-        eraseScreen();
-        setCursorAtStart();
+        System.out.print(ERASE_SCREEN);
+        System.out.print(SET_CURSOR_AT_START);
     }
 
     private static HashMap<Action, Command> initEditorCommands(State state) {
@@ -78,6 +79,8 @@ public class Application {
         var fileExplorerCommands = new HashMap<Action, Command>();
 
         fileExplorerCommands.put(Action.OPEN_FILE, new OpenFileCommand(state, terminalWriter));
+        fileExplorerCommands.put(Action.MOVE_CURSOR_UP, new ItemSelectionCommand(state, terminalWriter, Action.MOVE_CURSOR_UP));
+        fileExplorerCommands.put(Action.MOVE_CURSOR_DOWN, new ItemSelectionCommand(state, terminalWriter, Action.MOVE_CURSOR_DOWN));
 
         return fileExplorerCommands;
     }

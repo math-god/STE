@@ -10,13 +10,16 @@ import log.FileLogger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class InputReader {
 
     private static int inputChar;
-    private ContextType currentContext;
+    private static ContextType currentContext;
     private final Map<ContextType, HashMap<Action, Command>> commands;
     private final LinkedList<UndoCommand> commandLog = new LinkedList<>();
     private int undoStep = 0;
@@ -45,6 +48,10 @@ public class InputReader {
 
     public static int getInputChar() {
         return inputChar;
+    }
+
+    public static ContextType getCurrentContext() {
+        return currentContext;
     }
 
     public boolean read() throws IOException {
