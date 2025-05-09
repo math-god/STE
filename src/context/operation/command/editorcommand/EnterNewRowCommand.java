@@ -1,9 +1,9 @@
 package context.operation.command.editorcommand;
 
+import common.AsciiConstant;
 import common.PrimitiveOperation;
 import context.operation.command.UndoCommand;
 import context.operation.state.State;
-import input.InputReader;
 import output.Consumer;
 
 public class EnterNewRowCommand extends UndoCommand {
@@ -24,7 +24,7 @@ public class EnterNewRowCommand extends UndoCommand {
     public void execute() {
         rowIndex = state.addRow();
 
-        state.addChar(InputReader.getInputChar());
+        state.addChar(AsciiConstant.CARRIAGE_RETURN);
         rowIndex = state.getCursorRowIndex();
         columnIndex = state.getCursorColumnIndex();
 
@@ -33,6 +33,8 @@ public class EnterNewRowCommand extends UndoCommand {
 
         consumer.consume(getWriteModel(PrimitiveOperation.ADD_ROW));
         consumer.consume(getWriteModel(PrimitiveOperation.SET_CURSOR));
+
+        undoComplete = false;
     }
 
     @Override
@@ -46,6 +48,8 @@ public class EnterNewRowCommand extends UndoCommand {
 
         consumer.consume(getWriteModel(PrimitiveOperation.DELETE_ROW));
         consumer.consume(getWriteModel(PrimitiveOperation.SET_CURSOR));
+
+        undoComplete = true;
     }
 
     @Override

@@ -38,6 +38,7 @@ public class DeleteCharCommand extends UndoCommand {
         }
 
         consumer.consume(getWriteModel(PrimitiveOperation.DELETE_CHAR));
+        undoComplete = false;
     }
 
     @Override
@@ -49,6 +50,8 @@ public class DeleteCharCommand extends UndoCommand {
             state.moveCursorRight();
             consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_RIGHT));
         }
+
+        undoComplete = true;
     }
 
     @Override

@@ -5,7 +5,7 @@ import output.Consumer;
 
 public abstract class UndoCommand extends Command {
 
-    private boolean undoComplete;
+    protected boolean undoComplete;
 
     public UndoCommand(State state, Consumer consumer) {
         super(state, consumer);
@@ -18,8 +18,4 @@ public abstract class UndoCommand extends Command {
     public abstract void unexecute();
 
     public abstract UndoCommand copy();
-
-    protected void setUndoComplete(boolean value) {
-        undoComplete = value;
-    }
 }

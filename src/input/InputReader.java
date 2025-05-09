@@ -59,16 +59,27 @@ public class InputReader {
         if (action == Action.QUIT) return false;
 
         var command = commands.get(currentContext).get(action);
+        logger.info(commandLog.toString());
         if (action == Action.UNDO) {
             var iterator = commandLog.listIterator(undoStep);
             if (iterator.hasNext()) {
                 var undoCommand = iterator.next();
                 undoCommand.unexecute();
+
                 undoStep++;
+            }
+        } else if (action == Action.DO) {
+            var iterator = commandLog.listIterator(undoStep);
+            if (iterator.hasPrevious()) {
+                var doCommand = iterator.previous();
+                doCommand.execute();
+
+                undoStep--;
             }
         } else {
             command.execute();
             if (command instanceof UndoCommand) {
+                commandLog.removeIf(UndoCommand::isUndoComplete);
                 commandLog.addFirst(((UndoCommand) command).copy());
                 undoStep = 0;
             }
@@ -82,6 +93,7 @@ public class InputReader {
         if (ch == AsciiConstant.BACKSPACE) return Action.BACKSPACE_DELETE;
         if (ch == AsciiConstant.CARRIAGE_RETURN) return Action.ENTER_NEW_ROW;
         if (ch == AsciiConstant.DEVICE_CONTROL_1) return Action.QUIT;
+        if (ch == AsciiConstant.CANCEL) return Action.DO;
 
         if (ch == ReplaceCode.DEL) return Action.DEL_DELETE;
         if (ch == ReplaceCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;

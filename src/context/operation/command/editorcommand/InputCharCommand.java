@@ -10,6 +10,7 @@ public class InputCharCommand extends UndoCommand {
 
     private int rowIndex;
     private int columnIndex;
+    private int ch;
 
     public InputCharCommand(State state, Consumer consumer) {
         super(state, consumer);
@@ -19,11 +20,16 @@ public class InputCharCommand extends UndoCommand {
         super(obj.state, obj.consumer);
         rowIndex = obj.rowIndex;
         columnIndex = obj.columnIndex;
+        ch = obj.ch;
     }
 
     @Override
     public void execute() {
-        state.addChar(InputReader.getInputChar());
+        if (ch == 0) {
+            ch = InputReader.getInputChar();
+        }
+        state.addChar(ch);
+
         rowIndex = state.getCursorRowIndex();
         columnIndex = state.getCursorColumnIndex();
 
@@ -31,6 +37,8 @@ public class InputCharCommand extends UndoCommand {
 
         consumer.consume(getWriteModel(PrimitiveOperation.ADD_CHAR));
         consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_RIGHT));
+
+        undoComplete = false;
     }
 
     @Override
@@ -41,15 +49,19 @@ public class InputCharCommand extends UndoCommand {
 
         consumer.consume(getWriteModel(PrimitiveOperation.DELETE_CHAR));
         consumer.consume(getWriteModel(PrimitiveOperation.SET_CURSOR));
+
+        undoComplete = true;
     }
 
     @Override
     public UndoCommand copy() {
-        return new InputCharCommand(this);
+        var copy = new InputCharCommand(this);
+        ch = 0;
+        return copy;
     }
 
     @Override
     public String toString() {
-        return rowIndex + " " + columnIndex;
+        return ch + " " + rowIndex + " " + columnIndex;
     }
 }

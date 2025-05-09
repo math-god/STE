@@ -12,6 +12,7 @@ public enum Action {
     ENTER_NEW_ROW,
     INPUT_TAB,
     UNDO,
+    DO,
     QUIT,
 
     NONE
