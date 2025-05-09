@@ -14,6 +14,8 @@ public enum Action {
     UNDO,
     DO,
     QUIT,
+    OPEN_FILE,
+    NEXT_ITEM,
 
     NONE
 }

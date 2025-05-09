@@ -1,8 +1,9 @@
-package context.operation.command.editorcommand;
+package context.operation.command.editor;
 
 import common.AsciiConstant;
-import common.PrimitiveOperation;
+import common.Operation;
 import context.operation.command.UndoCommand;
+import context.operation.state.EditorState;
 import context.operation.state.State;
 import output.Consumer;
 
@@ -17,16 +18,18 @@ public class DeleteCharCommand extends UndoCommand {
     }
 
     private DeleteCharCommand(DeleteCharCommand obj) {
-        super(obj.state, obj.consumer);
+        super(obj.getState(), obj.consumer);
         ch = obj.ch;
         this.type = obj.type;
     }
 
     @Override
     public void execute() {
+        var state = getState();
+
         if (type == Type.BACKSPACE) {
             state.moveCursorLeft();
-            consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_LEFT));
+            consumer.consume(getWriteModel(Operation.CURSOR));
         }
 
         ch = state.deleteCharAtCursorAndGetChar();
@@ -37,18 +40,20 @@ public class DeleteCharCommand extends UndoCommand {
             state.deleteRow(secondRowIndex);
         }
 
-        consumer.consume(getWriteModel(PrimitiveOperation.DELETE_CHAR));
+        consumer.consume(getWriteModel(Operation.TEXT));
         undoComplete = false;
     }
 
     @Override
     public void unexecute() {
+        var state = getState();
+
         state.addChar(ch);
-        consumer.consume(getWriteModel(PrimitiveOperation.ADD_CHAR));
+        consumer.consume(getWriteModel(Operation.TEXT));
 
         if (type == Type.BACKSPACE) {
             state.moveCursorRight();
-            consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_RIGHT));
+            consumer.consume(getWriteModel(Operation.CURSOR));
         }
 
         undoComplete = true;
@@ -57,6 +62,11 @@ public class DeleteCharCommand extends UndoCommand {
     @Override
     public UndoCommand copy() {
         return new DeleteCharCommand(this);
+    }
+
+    @Override
+    protected EditorState getState() {
+        return (EditorState) super.getState();
     }
 
     public enum Type {

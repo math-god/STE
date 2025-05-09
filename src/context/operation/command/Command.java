@@ -1,6 +1,6 @@
 package context.operation.command;
 
-import common.PrimitiveOperation;
+import common.Operation;
 import context.dto.CursorTerminalWriteModel;
 import context.dto.TerminalWriteModel;
 import context.dto.TextTerminalWriteModel;
@@ -9,7 +9,7 @@ import output.Consumer;
 
 public abstract class Command {
 
-    protected final State state;
+    private final State state;
     protected final Consumer consumer;
 
     public Command(State state, Consumer consumer) {
@@ -19,21 +19,21 @@ public abstract class Command {
 
     public abstract void execute();
 
-    public TerminalWriteModel getWriteModel(PrimitiveOperation operation) {
-        switch (operation.getGroup()) {
+    public TerminalWriteModel getWriteModel(Operation operation) {
+        switch (operation) {
             case TEXT -> {
                 var textNotification = new TextTerminalWriteModel();
-                var text = state.getStringRepresentation();
-                textNotification.setOperation(PrimitiveOperation.ADD_CHAR);
+                var text = state.getData().getText();
+                textNotification.setOperation(operation);
                 textNotification.setText(text);
 
                 return textNotification;
             }
             case CURSOR -> {
                 var cursorNotification = new CursorTerminalWriteModel();
-                cursorNotification.setOperation(PrimitiveOperation.CURSOR_RIGHT);
-                cursorNotification.setCursorColumnIndex(state.getCursorColumnIndex());
-                cursorNotification.setCursorRowIndex(state.getCursorRowIndex());
+                cursorNotification.setOperation(operation);
+                cursorNotification.setCursorColumnIndex(state.getData().getColumnIndex());
+                cursorNotification.setCursorRowIndex(state.getData().getRowIndex());
 
                 return cursorNotification;
             }
@@ -41,5 +41,9 @@ public abstract class Command {
                 return TerminalWriteModel.none();
             }
         }
+    }
+
+    protected State getState() {
+        return state;
     }
 }

@@ -1,22 +1,22 @@
 package context.dto;
 
-import common.PrimitiveOperation;
+import common.Operation;
 
 public class TerminalWriteModel {
-    private PrimitiveOperation operation;
+    private Operation operation;
 
     public static TerminalWriteModel none() {
         var model = new TerminalWriteModel();
-        model.setOperation(PrimitiveOperation.NONE);
+        model.setOperation(Operation.NONE);
 
         return model;
     }
 
-    public PrimitiveOperation getOperation() {
+    public Operation getOperation() {
         return operation;
     }
 
-    public void setOperation(PrimitiveOperation operation) {
+    public void setOperation(Operation operation) {
         this.operation = operation;
     }
 }

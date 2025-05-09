@@ -3,8 +3,10 @@ import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
 import context.ContextType;
 import context.operation.command.Command;
-import context.operation.command.editorcommand.*;
+import context.operation.command.editor.*;
+import context.operation.command.fileexplorer.OpenFileCommand;
 import context.operation.state.EditorState;
+import context.operation.state.FileExplorerState;
 import context.operation.state.State;
 import input.InputReader;
 import output.TerminalWriter;
@@ -48,29 +50,36 @@ public class Application {
 
         terminalWriter = new TerminalWriter();
 
-        var state = new EditorState();
-
         var commands = new HashMap<ContextType, HashMap<Action, Command>>();
-        commands.put(ContextType.EDITOR, initEditorTransactions(state));
+        commands.put(ContextType.EDITOR, initEditorCommands(new EditorState()));
+        commands.put(ContextType.FILE_EXPLORER, initFileExplorerCommands(new FileExplorerState()));
         inputReader = new InputReader(commands);
 
         eraseScreen();
         setCursorAtStart();
     }
 
-    private static HashMap<Action, Command> initEditorTransactions(State editorState) {
+    private static HashMap<Action, Command> initEditorCommands(State state) {
         var editorCommands = new HashMap<Action, Command>();
 
-        editorCommands.put(Action.INPUT_PRINTABLE_CHAR, new InputCharCommand(editorState, terminalWriter));
-        editorCommands.put(Action.MOVE_CURSOR_RIGHT, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_RIGHT));
-        editorCommands.put(Action.MOVE_CURSOR_LEFT, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_LEFT));
-        editorCommands.put(Action.MOVE_CURSOR_UP, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_UP));
-        editorCommands.put(Action.MOVE_CURSOR_DOWN, new MoveCursorCommand(editorState, terminalWriter, Action.MOVE_CURSOR_DOWN));
-        editorCommands.put(Action.ENTER_NEW_ROW, new EnterNewRowCommand(editorState, terminalWriter));
-        editorCommands.put(Action.BACKSPACE_DELETE, new DeleteCharCommand(editorState, terminalWriter, DeleteCharCommand.Type.BACKSPACE));
-        editorCommands.put(Action.DEL_DELETE, new DeleteCharCommand(editorState, terminalWriter, DeleteCharCommand.Type.DEL));
+        editorCommands.put(Action.INPUT_PRINTABLE_CHAR, new InputCharCommand(state, terminalWriter));
+        editorCommands.put(Action.MOVE_CURSOR_RIGHT, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_RIGHT));
+        editorCommands.put(Action.MOVE_CURSOR_LEFT, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_LEFT));
+        editorCommands.put(Action.MOVE_CURSOR_UP, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_UP));
+        editorCommands.put(Action.MOVE_CURSOR_DOWN, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_DOWN));
+        editorCommands.put(Action.ENTER_NEW_ROW, new EnterNewRowCommand(state, terminalWriter));
+        editorCommands.put(Action.BACKSPACE_DELETE, new DeleteCharCommand(state, terminalWriter, DeleteCharCommand.Type.BACKSPACE));
+        editorCommands.put(Action.DEL_DELETE, new DeleteCharCommand(state, terminalWriter, DeleteCharCommand.Type.DEL));
 
         return editorCommands;
+    }
+
+    private static HashMap<Action, Command> initFileExplorerCommands(FileExplorerState state) {
+        var fileExplorerCommands = new HashMap<Action, Command>();
+
+        fileExplorerCommands.put(Action.OPEN_FILE, new OpenFileCommand(state, terminalWriter));
+
+        return fileExplorerCommands;
     }
 
     private static void exit() {

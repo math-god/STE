@@ -18,7 +18,6 @@ public class EditorState implements State {
         storage.add(new StringBuilder());
     }
 
-    @Override
     public void addChar(int ch) {
         var row = storage.get(cursorRowIndex);
         var maxColumnIndex = row.length();
@@ -31,7 +30,6 @@ public class EditorState implements State {
         size++;
     }
 
-    @Override
     public void deleteChar(int rowIndex, int columnIndex) {
         var row = storage.get(rowIndex);
 
@@ -39,7 +37,6 @@ public class EditorState implements State {
         size--;
     }
 
-    @Override
     public int deleteCharAtCursorAndGetChar() {
         var row = storage.get(cursorRowIndex);
         if (cursorColumnIndex > row.length() - 1) return AsciiConstant.NULL;
@@ -50,7 +47,6 @@ public class EditorState implements State {
         return ch;
     }
 
-    @Override
     public int addRow() {
         var fromRow = storage.get(cursorRowIndex);
         var modifiedFromRow = new StringBuilder(fromRow.substring(0, cursorColumnIndex));
@@ -67,7 +63,6 @@ public class EditorState implements State {
         return storage.indexOf(toRow);
     }
 
-    @Override
     public void joinRows(int firstRowIndex, int secondRowIndex) {
         var firstRow = storage.get(firstRowIndex);
         var secondRow = storage.get(secondRowIndex);
@@ -75,18 +70,16 @@ public class EditorState implements State {
         firstRow.append(secondRow);
     }
 
-    @Override
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
     }
 
-    @Override
-    public boolean moveCursorRight() {
+    public void moveCursorRight() {
         var currentRow = storage.get(cursorRowIndex);
         var currentRowMaxColumnIndex = currentRow.length();
         var maxRowIndex = storage.size() - 1;
 
-        if (cursorColumnIndex == currentRowMaxColumnIndex && cursorRowIndex == maxRowIndex) return false;
+        if (cursorColumnIndex == currentRowMaxColumnIndex && cursorRowIndex == maxRowIndex) return;
 
         if (currentRow.charAt(cursorColumnIndex) == AsciiConstant.CARRIAGE_RETURN ||
                 cursorColumnIndex == currentRowMaxColumnIndex && cursorRowIndex < maxRowIndex) {
@@ -97,13 +90,10 @@ public class EditorState implements State {
             cursorColumnIndex++;
             cursorColumnEdgeIndex++;
         }
-
-        return true;
     }
 
-    @Override
-    public boolean moveCursorLeft() {
-        if (cursorColumnIndex == 0 && cursorRowIndex == 0) return false;
+    public void moveCursorLeft() {
+        if (cursorColumnIndex == 0 && cursorRowIndex == 0) return;
 
         if (cursorColumnIndex == 0 && cursorRowIndex > 0) {
             cursorRowIndex--;
@@ -113,63 +103,41 @@ public class EditorState implements State {
             cursorColumnIndex--;
             cursorColumnEdgeIndex--;
         }
-
-        return true;
     }
 
-    @Override
-    public boolean moveCursorUp() {
-        if (cursorRowIndex == 0) return false;
+    public void moveCursorUp() {
+        if (cursorRowIndex == 0) return;
         var previousRowSize = storage.get(cursorRowIndex - 1).length();
 
         cursorColumnIndex = Math.min(previousRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex--;
-        return true;
     }
 
-    @Override
-    public boolean moveCursorDown() {
-        if (cursorRowIndex == storage.size() - 1) return false;
+    public void moveCursorDown() {
+        if (cursorRowIndex == storage.size() - 1) return;
         var nextRowSize = storage.get(cursorRowIndex + 1).length();
 
         cursorColumnIndex = Math.min(nextRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex++;
-        return true;
     }
 
-    @Override
-    public String getStringRepresentation() {
-        var result = new StringBuilder();
-        storage.forEach(result::append);
-
-        return result.toString();
-    }
-
-    @Override
     public Integer getCursorRowIndex() {
         return cursorRowIndex;
     }
 
-    @Override
     public Integer getCursorColumnIndex() {
         return cursorColumnIndex;
     }
 
-    @Override
-    public boolean setCursorRowIndex(Integer row) {
-        if (row < 0) return false;
+    public void setCursorRowIndex(Integer row) {
+        if (row < 0) return;
         this.cursorRowIndex = row;
-
-        return true;
     }
 
-    @Override
-    public boolean setCursorColumnIndex(Integer column) {
-        if (column < 0) return false;
+    public void setCursorColumnIndex(Integer column) {
+        if (column < 0) return;
         this.cursorColumnIndex = column;
         this.cursorColumnEdgeIndex = column;
-
-        return true;
     }
 
     public int getTextSize() {
@@ -178,5 +146,13 @@ public class EditorState implements State {
 
     public int getRowsCount() {
         return storage.size();
+    }
+
+    @Override
+    public StateDataModel getData() {
+        var result = new StringBuilder();
+        storage.forEach(result::append);
+
+        return new StateDataModel(result.toString(), cursorRowIndex, cursorColumnIndex);
     }
 }

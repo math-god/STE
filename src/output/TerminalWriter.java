@@ -19,7 +19,7 @@ public class TerminalWriter implements Consumer {
 
     public void write() {
         models.forEach(info -> {
-            switch (info.getOperation().getGroup()) {
+            switch (info.getOperation()) {
                 case TEXT -> {
                     var actualContextInfo = (TextTerminalWriteModel) info;
                     var text = actualContextInfo.getText();

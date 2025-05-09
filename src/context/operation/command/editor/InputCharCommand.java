@@ -1,7 +1,8 @@
-package context.operation.command.editorcommand;
+package context.operation.command.editor;
 
-import common.PrimitiveOperation;
+import common.Operation;
 import context.operation.command.UndoCommand;
+import context.operation.state.EditorState;
 import context.operation.state.State;
 import input.InputReader;
 import output.Consumer;
@@ -17,7 +18,7 @@ public class InputCharCommand extends UndoCommand {
     }
 
     private InputCharCommand(InputCharCommand obj) {
-        super(obj.state, obj.consumer);
+        super(obj.getState(), obj.consumer);
         rowIndex = obj.rowIndex;
         columnIndex = obj.columnIndex;
         ch = obj.ch;
@@ -25,6 +26,8 @@ public class InputCharCommand extends UndoCommand {
 
     @Override
     public void execute() {
+        var state = getState();
+
         if (ch == 0) {
             ch = InputReader.getInputChar();
         }
@@ -35,20 +38,22 @@ public class InputCharCommand extends UndoCommand {
 
         state.moveCursorRight();
 
-        consumer.consume(getWriteModel(PrimitiveOperation.ADD_CHAR));
-        consumer.consume(getWriteModel(PrimitiveOperation.CURSOR_RIGHT));
+        consumer.consume(getWriteModel(Operation.TEXT));
+        consumer.consume(getWriteModel(Operation.CURSOR));
 
         undoComplete = false;
     }
 
     @Override
     public void unexecute() {
+        var state = getState();
+
         state.deleteChar(rowIndex, columnIndex);
         state.setCursorRowIndex(rowIndex);
         state.setCursorColumnIndex(columnIndex);
 
-        consumer.consume(getWriteModel(PrimitiveOperation.DELETE_CHAR));
-        consumer.consume(getWriteModel(PrimitiveOperation.SET_CURSOR));
+        consumer.consume(getWriteModel(Operation.TEXT));
+        consumer.consume(getWriteModel(Operation.CURSOR));
 
         undoComplete = true;
     }
@@ -63,5 +68,10 @@ public class InputCharCommand extends UndoCommand {
     @Override
     public String toString() {
         return ch + " " + rowIndex + " " + columnIndex;
+    }
+
+    @Override
+    protected EditorState getState() {
+        return (EditorState) super.getState();
     }
 }

@@ -57,9 +57,12 @@ public class InputReader {
 
         var action = getActionByChar(inputChar);
         if (action == Action.QUIT) return false;
+        if (action == Action.OPEN_FILE) {
+            currentContext = ContextType.FILE_EXPLORER;
+        }
 
         var command = commands.get(currentContext).get(action);
-        logger.info(commandLog.toString());
+
         if (action == Action.UNDO) {
             var iterator = commandLog.listIterator(undoStep);
             if (iterator.hasNext()) {
@@ -94,6 +97,7 @@ public class InputReader {
         if (ch == AsciiConstant.CARRIAGE_RETURN) return Action.ENTER_NEW_ROW;
         if (ch == AsciiConstant.DEVICE_CONTROL_1) return Action.QUIT;
         if (ch == AsciiConstant.CANCEL) return Action.DO;
+        if (ch == AsciiConstant.SHIFT_IN) return Action.OPEN_FILE;
 
         if (ch == ReplaceCode.DEL) return Action.DEL_DELETE;
         if (ch == ReplaceCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;

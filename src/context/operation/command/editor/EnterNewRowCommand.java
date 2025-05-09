@@ -1,8 +1,9 @@
-package context.operation.command.editorcommand;
+package context.operation.command.editor;
 
 import common.AsciiConstant;
-import common.PrimitiveOperation;
+import common.Operation;
 import context.operation.command.UndoCommand;
+import context.operation.state.EditorState;
 import context.operation.state.State;
 import output.Consumer;
 
@@ -15,13 +16,15 @@ public class EnterNewRowCommand extends UndoCommand {
     }
 
     private EnterNewRowCommand(EnterNewRowCommand obj) {
-        super(obj.state, obj.consumer);
+        super(obj.getState(), obj.consumer);
         rowIndex = obj.rowIndex;
         columnIndex = obj.columnIndex;
     }
 
     @Override
     public void execute() {
+        var state = getState();
+
         rowIndex = state.addRow();
 
         state.addChar(AsciiConstant.CARRIAGE_RETURN);
@@ -31,14 +34,16 @@ public class EnterNewRowCommand extends UndoCommand {
         state.setCursorRowIndex(rowIndex + 1);
         state.setCursorColumnIndex(0);
 
-        consumer.consume(getWriteModel(PrimitiveOperation.ADD_ROW));
-        consumer.consume(getWriteModel(PrimitiveOperation.SET_CURSOR));
+        consumer.consume(getWriteModel(Operation.TEXT));
+        consumer.consume(getWriteModel(Operation.CURSOR));
 
         undoComplete = false;
     }
 
     @Override
     public void unexecute() {
+        var state = getState();
+
         state.setCursorRowIndex(rowIndex);
         state.setCursorColumnIndex(columnIndex);
 
@@ -46,10 +51,15 @@ public class EnterNewRowCommand extends UndoCommand {
 
         state.deleteRow(rowIndex + 1);
 
-        consumer.consume(getWriteModel(PrimitiveOperation.DELETE_ROW));
-        consumer.consume(getWriteModel(PrimitiveOperation.SET_CURSOR));
+        consumer.consume(getWriteModel(Operation.TEXT));
+        consumer.consume(getWriteModel(Operation.CURSOR));
 
         undoComplete = true;
+    }
+
+    @Override
+    protected EditorState getState() {
+        return (EditorState) super.getState();
     }
 
     @Override
