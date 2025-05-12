@@ -1,6 +1,6 @@
 package output;
 
-import common.AsciiConstant;
+import common.CharCode;
 import context.ContextType;
 import context.dto.CursorTerminalWriteModel;
 import context.dto.TerminalWriteModel;
@@ -47,7 +47,7 @@ public class TerminalWriter implements Consumer {
     }
 
     private String normalizeText(String text) {
-        return text.replace((char) AsciiConstant.CARRIAGE_RETURN, (char) AsciiConstant.NEW_LINE);
+        return text.replace((char) CharCode.CARRIAGE_RETURN, (char) CharCode.NEW_LINE);
     }
 
     private void printAll(String text, ContextType context) {

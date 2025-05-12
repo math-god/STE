@@ -1,11 +1,10 @@
 package input;
 
 import common.Action;
-import common.AsciiConstant;
-import common.ReplaceCode;
+import common.CharCode;
 import context.ContextType;
-import context.operation.command.Command;
-import context.operation.command.UndoCommand;
+import context.operation.command.abstraction.Command;
+import context.operation.command.abstraction.UndoCommand;
 import log.FileLogger;
 
 import java.io.IOException;
@@ -20,7 +19,8 @@ public class InputReader {
 
     private static int inputChar;
     private static ContextType currentContext;
-    private final Map<ContextType, HashMap<Action, Command>> commands;
+    private static Action action;
+    private final Map<Integer, Command> commands;
     private final LinkedList<UndoCommand> commandLog = new LinkedList<>();
     private int undoStep = 0;
     private final static Map<Integer, Integer> KEY_REPLACER;
@@ -31,15 +31,15 @@ public class InputReader {
 
     static {
         KEY_REPLACER = new HashMap<>();
-        KEY_REPLACER.put(Arrays.hashCode("\033[D".getBytes(StandardCharsets.UTF_8)), ReplaceCode.LEFT_ARROW);
-        KEY_REPLACER.put(Arrays.hashCode("\033[C".getBytes(StandardCharsets.UTF_8)), ReplaceCode.RIGHT_ARROW);
-        KEY_REPLACER.put(Arrays.hashCode("\033[B".getBytes(StandardCharsets.UTF_8)), ReplaceCode.DOWN_ARROW);
-        KEY_REPLACER.put(Arrays.hashCode("\033[A".getBytes(StandardCharsets.UTF_8)), ReplaceCode.UP_ARROW);
-        KEY_REPLACER.put(Arrays.hashCode("\033[3~".getBytes(StandardCharsets.UTF_8)), ReplaceCode.DEL);
-        KEY_REPLACER.put(Arrays.hashCode("".getBytes(StandardCharsets.UTF_8)), ReplaceCode.CTRL_Z);
+        KEY_REPLACER.put(Arrays.hashCode("\033[D".getBytes(StandardCharsets.UTF_8)), CharCode.LEFT_ARROW);
+        KEY_REPLACER.put(Arrays.hashCode("\033[C".getBytes(StandardCharsets.UTF_8)), CharCode.RIGHT_ARROW);
+        KEY_REPLACER.put(Arrays.hashCode("\033[B".getBytes(StandardCharsets.UTF_8)), CharCode.DOWN_ARROW);
+        KEY_REPLACER.put(Arrays.hashCode("\033[A".getBytes(StandardCharsets.UTF_8)), CharCode.UP_ARROW);
+        KEY_REPLACER.put(Arrays.hashCode("\033[3~".getBytes(StandardCharsets.UTF_8)), CharCode.DEL);
+        KEY_REPLACER.put(Arrays.hashCode("".getBytes(StandardCharsets.UTF_8)), CharCode.CTRL_Z);
     }
 
-    public InputReader(Map<ContextType, HashMap<Action, Command>> commands) {
+    public InputReader(Map<Integer, Command> commands) {
         this.commands = commands;
 
         // default value
@@ -54,6 +54,10 @@ public class InputReader {
         return currentContext;
     }
 
+    public static Action getAction() {
+        return action;
+    }
+
     public boolean read() throws IOException {
         var bytes = readKey();
         if (bytes.length == 1) {
@@ -62,13 +66,13 @@ public class InputReader {
             inputChar = KEY_REPLACER.get(Arrays.hashCode(bytes));
         }
 
-        var action = getActionByChar(inputChar);
+        action = getActionByChar(inputChar);
         if (action == Action.QUIT) return false;
-        if (action == Action.OPEN_FILE) {
+        if (action == Action.OPEN_EXPLORER) {
             currentContext = ContextType.FILE_EXPLORER;
         }
 
-        var command = commands.get(currentContext).get(action);
+        var command = commands.get(inputChar);
 
         if (action == Action.UNDO) {
             var iterator = commandLog.listIterator(undoStep);
@@ -98,20 +102,19 @@ public class InputReader {
     }
 
     private Action getActionByChar(int ch) throws IllegalArgumentException {
-        if (ch >= AsciiConstant.FIRST_PRINTABLE_CHAR && ch <= AsciiConstant.LAST_PRINTABLE_CHAR)
+        if (ch >= CharCode.FIRST_PRINTABLE_CHAR && ch <= CharCode.LAST_PRINTABLE_CHAR)
             return Action.INPUT_PRINTABLE_CHAR;
-        if (ch == AsciiConstant.BACKSPACE) return Action.BACKSPACE_DELETE;
-        if (ch == AsciiConstant.CARRIAGE_RETURN) return Action.ENTER_NEW_ROW;
-        if (ch == AsciiConstant.DEVICE_CONTROL_1) return Action.QUIT;
-        if (ch == AsciiConstant.CANCEL) return Action.DO;
-        if (ch == AsciiConstant.SHIFT_IN) return Action.OPEN_FILE;
-
-        if (ch == ReplaceCode.DEL) return Action.DEL_DELETE;
-        if (ch == ReplaceCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;
-        if (ch == ReplaceCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;
-        if (ch == ReplaceCode.UP_ARROW) return Action.MOVE_CURSOR_UP;
-        if (ch == ReplaceCode.DOWN_ARROW) return Action.MOVE_CURSOR_DOWN;
-        if (ch == ReplaceCode.CTRL_Z) return Action.UNDO;
+        if (ch == CharCode.BACKSPACE) return Action.BACKSPACE_DELETE;
+        if (ch == CharCode.CARRIAGE_RETURN) return Action.NEW_ROW;
+        if (ch == CharCode.DEVICE_CONTROL_1) return Action.QUIT;
+        if (ch == CharCode.CANCEL) return Action.DO;
+        if (ch == CharCode.SHIFT_IN) return Action.OPEN_EXPLORER;
+        if (ch == CharCode.DEL) return Action.DEL_DELETE;
+        if (ch == CharCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;
+        if (ch == CharCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;
+        if (ch == CharCode.UP_ARROW) return Action.MOVE_CURSOR_UP;
+        if (ch == CharCode.DOWN_ARROW) return Action.MOVE_CURSOR_DOWN;
+        if (ch == CharCode.CTRL_Z) return Action.UNDO;
 
         throw new IllegalArgumentException("Unknown char: " + ch + " for " + currentContext);
     }

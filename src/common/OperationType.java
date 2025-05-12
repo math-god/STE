@@ -1,6 +1,6 @@
 package common;
 
-public enum Operation {
+public enum OperationType {
 
     CURSOR,
     TEXT,

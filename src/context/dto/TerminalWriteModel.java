@@ -1,22 +1,30 @@
 package context.dto;
 
-import common.Operation;
+import common.OperationType;
+import context.ContextType;
 
 public class TerminalWriteModel {
-    private Operation operation;
+    private OperationType operationType;
+    private ContextType contextType;
 
-    public static TerminalWriteModel none() {
-        var model = new TerminalWriteModel();
-        model.setOperation(Operation.NONE);
-
-        return model;
+    public TerminalWriteModel(OperationType operationType, ContextType contextType) {
+        this.operationType = operationType;
+        this.contextType = contextType;
     }
 
-    public Operation getOperation() {
-        return operation;
+    public OperationType getOperation() {
+        return operationType;
     }
 
-    public void setOperation(Operation operation) {
-        this.operation = operation;
+    public void setOperation(OperationType operationType) {
+        this.operationType = operationType;
+    }
+
+    public ContextType getContextType() {
+        return contextType;
+    }
+
+    public void setContextType(ContextType contextType) {
+        this.contextType = contextType;
     }
 }

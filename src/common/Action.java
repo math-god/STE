@@ -9,11 +9,13 @@ public enum Action {
     MOVE_CURSOR_UP,
     MOVE_CURSOR_DOWN,
     MOVE_CURSOR,
-    ENTER_NEW_ROW,
+    NEW_ROW,
     INPUT_TAB,
+
     UNDO,
     DO,
     QUIT,
+    OPEN_EXPLORER,
     OPEN_FILE,
     NEXT_ITEM,
 

@@ -1,33 +1,31 @@
-package context.operation.command.editor;
+package context.operation.command;
 
-import common.Operation;
-import context.operation.command.UndoCommand;
+import context.operation.command.abstraction.UndoCommand;
 import context.operation.state.EditorState;
-import context.operation.state.State;
 import input.InputReader;
-import output.Consumer;
 
-public class InputCharCommand extends UndoCommand {
+public class InputCharCommand implements UndoCommand {
 
     private int rowIndex;
     private int columnIndex;
     private int ch;
+    private final EditorState state;
+    private boolean undoComplete;
 
-    public InputCharCommand(State state, Consumer consumer) {
-        super(state, consumer);
+    public InputCharCommand(EditorState state) {
+        this.state = state;
     }
 
     private InputCharCommand(InputCharCommand obj) {
-        super(obj.getState(), obj.consumer);
-        rowIndex = obj.rowIndex;
-        columnIndex = obj.columnIndex;
-        ch = obj.ch;
+        this.state = obj.state;
+        this.rowIndex = obj.rowIndex;
+        this.columnIndex = obj.columnIndex;
+        this.ch = obj.ch;
+        this.undoComplete = obj.undoComplete;
     }
 
     @Override
     public void execute() {
-        var state = getState();
-
         if (ch == 0) {
             ch = InputReader.getInputChar();
         }
@@ -38,22 +36,19 @@ public class InputCharCommand extends UndoCommand {
 
         state.moveCursorRight();
 
-        consumer.consume(getWriteModel(Operation.TEXT));
-        consumer.consume(getWriteModel(Operation.CURSOR));
-
         undoComplete = false;
     }
 
     @Override
-    public void unexecute() {
-        var state = getState();
+    public boolean isUndoComplete() {
+        return false;
+    }
 
+    @Override
+    public void unexecute() {
         state.deleteChar(rowIndex, columnIndex);
         state.setCursorRowIndex(rowIndex);
         state.setCursorColumnIndex(columnIndex);
-
-        consumer.consume(getWriteModel(Operation.TEXT));
-        consumer.consume(getWriteModel(Operation.CURSOR));
 
         undoComplete = true;
     }
@@ -68,10 +63,5 @@ public class InputCharCommand extends UndoCommand {
     @Override
     public String toString() {
         return ch + " " + rowIndex + " " + columnIndex;
-    }
-
-    @Override
-    protected EditorState getState() {
-        return (EditorState) super.getState();
     }
 }

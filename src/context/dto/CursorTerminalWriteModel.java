@@ -1,22 +1,32 @@
 package context.dto;
 
-public class CursorTerminalWriteModel extends TerminalWriteModel {
-    private Integer cursorRowIndex;
-    private Integer cursorColumnIndex;
+import common.OperationType;
+import context.ContextType;
 
-    public Integer getCursorRowIndex() {
+public class CursorTerminalWriteModel extends TerminalWriteModel {
+    private int cursorRowIndex;
+    private int cursorColumnIndex;
+
+    public CursorTerminalWriteModel(int cursorRowIndex, int cursorColumnIndex,
+                                    OperationType operationType, ContextType contextType) {
+        super(operationType, contextType);
+        this.cursorRowIndex = cursorRowIndex;
+        this.cursorColumnIndex = cursorColumnIndex;
+    }
+
+    public int getCursorRowIndex() {
         return cursorRowIndex;
     }
 
-    public void setCursorRowIndex(Integer cursorRowIndex) {
+    public void setCursorRowIndex(int cursorRowIndex) {
         this.cursorRowIndex = cursorRowIndex;
     }
 
-    public Integer getCursorColumnIndex() {
+    public int getCursorColumnIndex() {
         return cursorColumnIndex;
     }
 
-    public void setCursorColumnIndex(Integer cursorColumnIndex) {
+    public void setCursorColumnIndex(int cursorColumnIndex) {
         this.cursorColumnIndex = cursorColumnIndex;
     }
 }

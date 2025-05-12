@@ -1,19 +1,18 @@
 import common.Action;
+import common.CharCode;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
 import context.ContextType;
-import context.operation.command.Command;
-import context.operation.command.editor.*;
-import context.operation.command.fileexplorer.ItemSelectionCommand;
-import context.operation.command.fileexplorer.OpenFileCommand;
+import context.operation.command.*;
+import context.operation.command.abstraction.Command;
 import context.operation.state.EditorState;
 import context.operation.state.FileExplorerState;
-import context.operation.state.State;
 import input.InputReader;
 import output.TerminalWriter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import static common.escape.Escape.ERASE_SCREEN;
 import static common.escape.Escape.SET_CURSOR_AT_START;
@@ -51,38 +50,40 @@ public class Application {
 
         terminalWriter = new TerminalWriter();
 
-        var commands = new HashMap<ContextType, HashMap<Action, Command>>();
-        commands.put(ContextType.EDITOR, initEditorCommands(new EditorState()));
-        commands.put(ContextType.FILE_EXPLORER, initFileExplorerCommands(new FileExplorerState()));
+        var commands = initCommands();
         inputReader = new InputReader(commands);
 
         System.out.print(ERASE_SCREEN);
         System.out.print(SET_CURSOR_AT_START);
     }
 
-    private static HashMap<Action, Command> initEditorCommands(State state) {
-        var editorCommands = new HashMap<Action, Command>();
+    private static Map<Integer, Command> initCommands() {
+        var commands = new HashMap<Integer, Command>();
+        var editorState = new EditorState(terminalWriter);
+        var fileExplorerState = new FileExplorerState(terminalWriter);
 
-        editorCommands.put(Action.INPUT_PRINTABLE_CHAR, new InputCharCommand(state, terminalWriter));
-        editorCommands.put(Action.MOVE_CURSOR_RIGHT, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_RIGHT));
-        editorCommands.put(Action.MOVE_CURSOR_LEFT, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_LEFT));
-        editorCommands.put(Action.MOVE_CURSOR_UP, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_UP));
-        editorCommands.put(Action.MOVE_CURSOR_DOWN, new MoveCursorCommand(state, terminalWriter, Action.MOVE_CURSOR_DOWN));
-        editorCommands.put(Action.ENTER_NEW_ROW, new EnterNewRowCommand(state, terminalWriter));
-        editorCommands.put(Action.BACKSPACE_DELETE, new DeleteCharCommand(state, terminalWriter, DeleteCharCommand.Type.BACKSPACE));
-        editorCommands.put(Action.DEL_DELETE, new DeleteCharCommand(state, terminalWriter, DeleteCharCommand.Type.DEL));
+        var deleteCharCommand = new DeleteCharCommand(editorState);
+        var enterNewRowCommand = new EnterNewRowCommand(editorState);
+        var inputCharCommand = new InputCharCommand(editorState);
+        var arrowKeysCommand = new ArrowKeysCommand(editorState, fileExplorerState);
+        var openFileCommand = new OpenFileCommand(fileExplorerState);
 
-        return editorCommands;
-    }
+        commands.put(CharCode.DEL, deleteCharCommand);
+        commands.put(CharCode.BACKSPACE, deleteCharCommand);
+        commands.put(CharCode.CARRIAGE_RETURN, enterNewRowCommand);
 
-    private static HashMap<Action, Command> initFileExplorerCommands(FileExplorerState state) {
-        var fileExplorerCommands = new HashMap<Action, Command>();
+        // fixme do something better
+        for (var i = CharCode.FIRST_PRINTABLE_CHAR; i <= CharCode.LAST_PRINTABLE_CHAR; i++) {
+            commands.put(i, inputCharCommand);
+        }
 
-        fileExplorerCommands.put(Action.OPEN_FILE, new OpenFileCommand(state, terminalWriter));
-        fileExplorerCommands.put(Action.MOVE_CURSOR_UP, new ItemSelectionCommand(state, terminalWriter, Action.MOVE_CURSOR_UP));
-        fileExplorerCommands.put(Action.MOVE_CURSOR_DOWN, new ItemSelectionCommand(state, terminalWriter, Action.MOVE_CURSOR_DOWN));
+        commands.put(CharCode.DOWN_ARROW, arrowKeysCommand);
+        commands.put(CharCode.UP_ARROW, arrowKeysCommand);
+        commands.put(CharCode.LEFT_ARROW, arrowKeysCommand);
+        commands.put(CharCode.RIGHT_ARROW, arrowKeysCommand);
+        commands.put(CharCode.SHIFT_IN, openFileCommand);
 
-        return fileExplorerCommands;
+        return commands;
     }
 
     private static void exit() {
