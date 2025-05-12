@@ -41,7 +41,7 @@ public class InputCharCommand implements UndoCommand {
 
     @Override
     public boolean isUndoComplete() {
-        return false;
+        return undoComplete;
     }
 
     @Override
