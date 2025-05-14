@@ -1,10 +1,10 @@
 package context.operation.command;
 
-import context.operation.command.abstraction.UndoCommand;
+import context.operation.command.abstraction.Command;
 import context.operation.state.EditorState;
 import input.InputReader;
 
-public class InputCharCommand implements UndoCommand {
+public class InputCharCommand implements Command {
 
     private int rowIndex;
     private int columnIndex;
@@ -54,10 +54,15 @@ public class InputCharCommand implements UndoCommand {
     }
 
     @Override
-    public UndoCommand copy() {
+    public Command copy() {
         var copy = new InputCharCommand(this);
         ch = 0;
         return copy;
+    }
+
+    @Override
+    public boolean canUndo() {
+        return true;
     }
 
     @Override

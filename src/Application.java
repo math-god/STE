@@ -1,8 +1,6 @@
-import common.Action;
 import common.CharCode;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
-import context.ContextType;
 import context.operation.command.*;
 import context.operation.command.abstraction.Command;
 import context.operation.state.EditorState;
@@ -63,14 +61,14 @@ public class Application {
         var fileExplorerState = new FileExplorerState(terminalWriter);
 
         var deleteCharCommand = new DeleteCharCommand(editorState);
-        var enterNewRowCommand = new EnterNewRowCommand(editorState);
+        var enterCharCommand = new EnterCharCommand(editorState, fileExplorerState);
         var inputCharCommand = new InputCharCommand(editorState);
         var arrowKeysCommand = new ArrowKeysCommand(editorState, fileExplorerState);
-        var openFileCommand = new OpenFileCommand(fileExplorerState);
+        var openFileExplorerCommand = new OpenFileExplorerCommand(fileExplorerState);
 
         commands.put(CharCode.DEL, deleteCharCommand);
         commands.put(CharCode.BACKSPACE, deleteCharCommand);
-        commands.put(CharCode.CARRIAGE_RETURN, enterNewRowCommand);
+        commands.put(CharCode.CARRIAGE_RETURN, enterCharCommand);
 
         // fixme do something better
         for (var i = CharCode.FIRST_PRINTABLE_CHAR; i <= CharCode.LAST_PRINTABLE_CHAR; i++) {
@@ -81,7 +79,7 @@ public class Application {
         commands.put(CharCode.UP_ARROW, arrowKeysCommand);
         commands.put(CharCode.LEFT_ARROW, arrowKeysCommand);
         commands.put(CharCode.RIGHT_ARROW, arrowKeysCommand);
-        commands.put(CharCode.SHIFT_IN, openFileCommand);
+        commands.put(CharCode.SHIFT_IN, openFileExplorerCommand);
 
         return commands;
     }

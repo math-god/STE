@@ -8,8 +8,8 @@ import context.dto.TerminalWriteModel;
 import context.dto.TextTerminalWriteModel;
 import output.Consumer;
 
-import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
 public class EditorState {
     private int cursorRowIndex = 0;
@@ -95,11 +95,21 @@ public class EditorState {
         consumer.consume(getTextData());
     }
 
-    public void fillStorage(Collection<String> lines) {
-        var list = new LinkedList<StringBuilder>();
-        lines.forEach(m -> list.add(new StringBuilder(m)));
+    public void fillStorage(List<String> lines) {
+        if (!lines.isEmpty()) {
+            var list = new LinkedList<StringBuilder>();
+            for (var i = 0; i < lines.size() - 1; i++) {
+                list.add(new StringBuilder(lines.get(i) + (char) CharCode.CARRIAGE_RETURN));
+            }
+            list.add(new StringBuilder(lines.get(lines.size() - 1)));
+            storage = list;
+        }
+        cursorRowIndex = 0;
+        cursorColumnIndex = 0;
+        cursorColumnEdgeIndex = 0;
 
-        storage = list;
+        consumer.consume(getTextData());
+        consumer.consume(getCursorData());
     }
 
     public void moveCursorRight() {

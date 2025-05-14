@@ -41,4 +41,24 @@ public class ArrowKeysCommand implements Command {
             fileExplorerState.updateList();
         }
     }
+
+    @Override
+    public boolean canUndo() {
+        return false;
+    }
+
+    @Override
+    public boolean isUndoComplete() {
+        throw new RuntimeException("Command can't be unexecuted");
+    }
+
+    @Override
+    public void unexecute() {
+        throw new RuntimeException("Command can't be unexecuted");
+    }
+
+    @Override
+    public Command copy() {
+        throw new RuntimeException("Command can't be unexecuted");
+    }
 }

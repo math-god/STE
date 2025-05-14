@@ -27,7 +27,7 @@ public class TerminalWriter implements Consumer {
                     var text = contextInfo.getText();
 
                     var normalizedText = normalizeText(text);
-                    logger.info(normalizedText.replace('\n', '*'));
+                //    logger.info(normalizedText.replace('\n', '*'));
                     printAll(normalizedText, InputReader.getCurrentContext());
                 }
                 case CURSOR -> {

@@ -2,11 +2,11 @@ package context.operation.command;
 
 import common.Action;
 import common.CharCode;
-import context.operation.command.abstraction.UndoCommand;
+import context.operation.command.abstraction.Command;
 import context.operation.state.EditorState;
 import input.InputReader;
 
-public class DeleteCharCommand implements UndoCommand {
+public class DeleteCharCommand implements Command {
 
     private int ch;
     public Action action;
@@ -55,7 +55,7 @@ public class DeleteCharCommand implements UndoCommand {
     }
 
     @Override
-    public UndoCommand copy() {
+    public Command copy() {
         return new DeleteCharCommand(this);
     }
 
@@ -64,4 +64,8 @@ public class DeleteCharCommand implements UndoCommand {
         return undoComplete;
     }
 
+    @Override
+    public boolean canUndo() {
+        return true;
+    }
 }

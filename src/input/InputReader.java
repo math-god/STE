@@ -4,7 +4,6 @@ import common.Action;
 import common.CharCode;
 import context.ContextType;
 import context.operation.command.abstraction.Command;
-import context.operation.command.abstraction.UndoCommand;
 import log.FileLogger;
 
 import java.io.IOException;
@@ -21,7 +20,7 @@ public class InputReader {
     private static ContextType currentContext;
     private static Action action;
     private final Map<Integer, Command> commands;
-    private final LinkedList<UndoCommand> commandLog = new LinkedList<>();
+    private final LinkedList<Command> commandLog = new LinkedList<>();
     private int undoStep = 0;
     private final static Map<Integer, Integer> KEY_REPLACER;
 
@@ -68,9 +67,6 @@ public class InputReader {
 
         action = getActionByChar(inputChar);
         if (action == Action.QUIT) return false;
-        if (action == Action.OPEN_EXPLORER) {
-            currentContext = ContextType.FILE_EXPLORER;
-        }
 
         var command = commands.get(inputChar);
 
@@ -92,12 +88,19 @@ public class InputReader {
             }
         } else {
             command.execute();
-            if (command instanceof UndoCommand) {
-                commandLog.removeIf(UndoCommand::isUndoComplete);
-                commandLog.addFirst(((UndoCommand) command).copy());
+            if (command.canUndo()) {
+                commandLog.removeIf(Command::isUndoComplete);
+                commandLog.addFirst(command.copy());
                 undoStep = 0;
             }
         }
+
+        if (action == Action.OPEN_EXPLORER) {
+            currentContext = ContextType.FILE_EXPLORER;
+        } else if (action == Action.OPEN_FILE) {
+            currentContext = ContextType.EDITOR;
+        }
+
         return true;
     }
 
@@ -105,7 +108,8 @@ public class InputReader {
         if (ch >= CharCode.FIRST_PRINTABLE_CHAR && ch <= CharCode.LAST_PRINTABLE_CHAR)
             return Action.INPUT_PRINTABLE_CHAR;
         if (ch == CharCode.BACKSPACE) return Action.BACKSPACE_DELETE;
-        if (ch == CharCode.CARRIAGE_RETURN) return Action.NEW_ROW;
+        if (ch == CharCode.CARRIAGE_RETURN)
+            return currentContext == ContextType.EDITOR ? Action.NEW_ROW : Action.OPEN_FILE;
         if (ch == CharCode.DEVICE_CONTROL_1) return Action.QUIT;
         if (ch == CharCode.CANCEL) return Action.DO;
         if (ch == CharCode.SHIFT_IN) return Action.OPEN_EXPLORER;
