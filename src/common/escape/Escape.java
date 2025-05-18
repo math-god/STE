@@ -2,6 +2,7 @@ package common.escape;
 
 public class Escape {
     public final static String ERASE_SCREEN = "\033[2J";
+    public final static String ERASE_IN_DISPLAY = "\033[J";
     public final static String ERASE_LINE = "\033[2K";
     public final static String SAVE_CURSOR_POSITION = "\0337";
     public final static String RESTORE_CURSOR_POSITION = "\0338";

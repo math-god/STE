@@ -46,8 +46,21 @@ public class EnterCharCommand implements Command {
                 undoComplete = false;
             }
             case FILE_EXPLORER -> {
-                var fileContent = fileExplorerState.openFile();
-                editorState.fillStorage(fileContent);
+                var action = InputReader.getAction();
+
+                switch (action) {
+                    case OPEN_FILE -> {
+                        var fileContent = fileExplorerState.readFile();
+                        fileExplorerState.clear();
+                        editorState.fillStorage(fileContent);
+                    }
+                    case SAVE_FILE -> {
+                        var editorContent = editorState.getStringRepresentation();
+                        fileExplorerState.clear();
+                        fileExplorerState.writeFile(editorContent);
+                    }
+                }
+
                 canUndo = false;
             }
         }

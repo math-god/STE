@@ -27,7 +27,7 @@ public class TerminalWriter implements Consumer {
                     var text = contextInfo.getText();
 
                     var normalizedText = normalizeText(text);
-                //    logger.info(normalizedText.replace('\n', '*'));
+                    //    logger.info(normalizedText.replace('\n', '*'));
                     printAll(normalizedText, InputReader.getCurrentContext());
                 }
                 case CURSOR -> {
@@ -52,12 +52,11 @@ public class TerminalWriter implements Consumer {
 
     private void printAll(String text, ContextType context) {
         switch (context) {
-            case EDITOR ->
-                    System.out.print(SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START + ERASE_SCREEN + text +
-                            RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE
-                    );
-            case FILE_EXPLORER -> System.out.print(SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_SCREEN + text);
+            case EDITOR -> System.out.print(SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START +
+                    ERASE_IN_DISPLAY + text + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE
+            );
+            case FILE_EXPLORER ->
+                    System.out.print(SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_IN_DISPLAY + text);
         }
-
     }
 }

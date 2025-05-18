@@ -80,6 +80,7 @@ public class Application {
         commands.put(CharCode.LEFT_ARROW, arrowKeysCommand);
         commands.put(CharCode.RIGHT_ARROW, arrowKeysCommand);
         commands.put(CharCode.SHIFT_IN, openFileExplorerCommand);
+        commands.put(CharCode.DEVICE_CONTROL_3, openFileExplorerCommand);
 
         return commands;
     }

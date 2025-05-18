@@ -10,6 +10,7 @@ public class CharCode {
     public final static int SPACE = 32;
     public final static int NULL = 0;
     public final static int DEVICE_CONTROL_1 = 17;
+    public final static int DEVICE_CONTROL_3 = 19;
     public final static int CANCEL = 24;
     public final static int SHIFT_IN = 15;
 

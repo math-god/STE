@@ -2,6 +2,7 @@ package context.operation.command;
 
 import context.operation.command.abstraction.Command;
 import context.operation.state.FileExplorerState;
+import input.InputReader;
 
 public class OpenFileExplorerCommand implements Command {
 
@@ -13,7 +14,8 @@ public class OpenFileExplorerCommand implements Command {
 
     @Override
     public void execute() {
-        state.updateList();
+        var action = InputReader.getAction();
+        state.updateExplorer(action);
     }
 
     @Override

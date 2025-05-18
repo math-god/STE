@@ -38,7 +38,7 @@ public class ArrowKeysCommand implements Command {
                 default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
             }
 
-            fileExplorerState.updateList();
+            fileExplorerState.updateExplorer(action);
         }
     }
 

@@ -95,7 +95,7 @@ public class InputReader {
             }
         }
 
-        if (action == Action.OPEN_EXPLORER) {
+        if (action == Action.OPEN_FILE_EXPLORER || action == Action.OPEN_DIR_EXPLORER) {
             currentContext = ContextType.FILE_EXPLORER;
         } else if (action == Action.OPEN_FILE) {
             currentContext = ContextType.EDITOR;
@@ -111,8 +111,9 @@ public class InputReader {
         if (ch == CharCode.CARRIAGE_RETURN)
             return currentContext == ContextType.EDITOR ? Action.NEW_ROW : Action.OPEN_FILE;
         if (ch == CharCode.DEVICE_CONTROL_1) return Action.QUIT;
+        if (ch == CharCode.DEVICE_CONTROL_3) return Action.OPEN_DIR_EXPLORER;
         if (ch == CharCode.CANCEL) return Action.DO;
-        if (ch == CharCode.SHIFT_IN) return Action.OPEN_EXPLORER;
+        if (ch == CharCode.SHIFT_IN) return Action.OPEN_FILE_EXPLORER;
         if (ch == CharCode.DEL) return Action.DEL_DELETE;
         if (ch == CharCode.RIGHT_ARROW) return Action.MOVE_CURSOR_RIGHT;
         if (ch == CharCode.LEFT_ARROW) return Action.MOVE_CURSOR_LEFT;

@@ -112,6 +112,13 @@ public class EditorState {
         consumer.consume(getCursorData());
     }
 
+    public String getStringRepresentation() {
+        var result = new StringBuilder();
+        storage.forEach(result::append);
+
+        return result.toString();
+    }
+
     public void moveCursorRight() {
         var currentRow = storage.get(cursorRowIndex);
         var currentRowMaxColumnIndex = currentRow.length();
