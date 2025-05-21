@@ -1,8 +1,7 @@
-import common.CharCode;
+import common.Action;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
-import context.operation.command.*;
-import context.operation.command.abstraction.Command;
+import context.operation.command.CommandExecutor;
 import context.operation.state.EditorState;
 import context.operation.state.FileExplorerState;
 import input.InputReader;
@@ -10,7 +9,6 @@ import output.TerminalWriter;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 import static common.escape.Escape.ERASE_SCREEN;
 import static common.escape.Escape.SET_CURSOR_AT_START;
@@ -48,41 +46,52 @@ public class Application {
 
         terminalWriter = new TerminalWriter();
 
-        var commands = initCommands();
+        var commands = initExecutor();
         inputReader = new InputReader(commands);
 
         System.out.print(ERASE_SCREEN);
         System.out.print(SET_CURSOR_AT_START);
     }
 
-    private static Map<Integer, Command> initCommands() {
-        var commands = new HashMap<Integer, Command>();
+    private static CommandExecutor initExecutor() {
+        var commands = new HashMap<Action, CommandExecutor.Command>();
         var editorState = new EditorState(terminalWriter);
         var fileExplorerState = new FileExplorerState(terminalWriter);
+        var executor = new CommandExecutor(editorState, fileExplorerState, commands);
 
-        var deleteCharCommand = new DeleteCharCommand(editorState);
-        var enterCharCommand = new EnterCharCommand(editorState, fileExplorerState);
-        var inputCharCommand = new InputCharCommand(editorState);
-        var arrowKeysCommand = new ArrowKeysCommand(editorState, fileExplorerState);
-        var openFileExplorerCommand = new OpenFileExplorerCommand(fileExplorerState);
+        var editorPrintableInputCommand = executor.new EditorPrintableInputCommand();
+        var editorDeleteCharCommand = executor.new EditorDeleteCharCommand();
+        var arrowKeysCommand = executor.new ArrowKeysCommand();
+        var editorNewRowCommand = executor.new EditorNewRowCommand();
+        var doCommand = executor.new DoCommand();
+        var undoCommand = executor.new UndoCommand();
+        var quitCommand = executor.new QuitCommand();
+        var contextSwitchCommand = executor.new ContextSwitchCommand();
 
-        commands.put(CharCode.DEL, deleteCharCommand);
-        commands.put(CharCode.BACKSPACE, deleteCharCommand);
-        commands.put(CharCode.CARRIAGE_RETURN, enterCharCommand);
+        commands.put(Action.INPUT_PRINTABLE_CHAR, editorPrintableInputCommand);
 
-        // fixme do something better
-        for (var i = CharCode.FIRST_PRINTABLE_CHAR; i <= CharCode.LAST_PRINTABLE_CHAR; i++) {
-            commands.put(i, inputCharCommand);
-        }
+        commands.put(Action.BACKSPACE_DELETE, editorDeleteCharCommand);
+        commands.put(Action.DEL_DELETE, editorDeleteCharCommand);
 
-        commands.put(CharCode.DOWN_ARROW, arrowKeysCommand);
-        commands.put(CharCode.UP_ARROW, arrowKeysCommand);
-        commands.put(CharCode.LEFT_ARROW, arrowKeysCommand);
-        commands.put(CharCode.RIGHT_ARROW, arrowKeysCommand);
-        commands.put(CharCode.SHIFT_IN, openFileExplorerCommand);
-        commands.put(CharCode.DEVICE_CONTROL_3, openFileExplorerCommand);
+        commands.put(Action.MOVE_CURSOR_UP, arrowKeysCommand);
+        commands.put(Action.MOVE_CURSOR_DOWN, arrowKeysCommand);
+        commands.put(Action.MOVE_CURSOR_RIGHT, arrowKeysCommand);
+        commands.put(Action.MOVE_CURSOR_LEFT, arrowKeysCommand);
 
-        return commands;
+        commands.put(Action.NEW_ROW, editorNewRowCommand);
+
+        commands.put(Action.DO, doCommand);
+        commands.put(Action.UNDO, undoCommand);
+        commands.put(Action.QUIT, quitCommand);
+
+        commands.put(Action.OPEN_FILE_EXPLORER, contextSwitchCommand);
+        commands.put(Action.OPEN_DIR_EXPLORER, contextSwitchCommand);
+        commands.put(Action.OPEN_FILE, contextSwitchCommand);
+        commands.put(Action.SAVE_FILE, contextSwitchCommand);
+        commands.put(Action.NEXT_ITEM, arrowKeysCommand);
+        commands.put(Action.PREVIOUS_ITEM, arrowKeysCommand);
+
+        return executor;
     }
 
     private static void exit() {

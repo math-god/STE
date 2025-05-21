@@ -5,6 +5,7 @@ import context.ContextType;
 import context.dto.CursorTerminalWriteModel;
 import context.dto.TerminalWriteModel;
 import context.dto.TextTerminalWriteModel;
+import context.operation.command.CommandExecutor;
 import input.InputReader;
 import log.FileLogger;
 
@@ -28,7 +29,7 @@ public class TerminalWriter implements Consumer {
 
                     var normalizedText = normalizeText(text);
                     //    logger.info(normalizedText.replace('\n', '*'));
-                    printAll(normalizedText, InputReader.getCurrentContext());
+                    printAll(normalizedText, CommandExecutor.getContext());
                 }
                 case CURSOR -> {
                     var contextInfo = (CursorTerminalWriteModel) info;

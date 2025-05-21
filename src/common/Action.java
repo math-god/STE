@@ -20,6 +20,7 @@ public enum Action {
     OPEN_FILE,
     SAVE_FILE,
     NEXT_ITEM,
+    PREVIOUS_ITEM,
 
     NONE
 }
