@@ -112,6 +112,11 @@ public class EditorState {
         consumer.consume(getCursorData());
     }
 
+    public void sendDataToTerminal() {
+        consumer.consume(getTextData());
+        consumer.consume(getCursorData());
+    }
+
     public String getStringRepresentation() {
         var result = new StringBuilder();
         storage.forEach(result::append);

@@ -264,16 +264,27 @@ public class CommandExecutor {
                     context = ContextType.FILE_EXPLORER;
                     fileExplorerState.updateExplorer(action);
                 }
-                case OPEN_FILE -> {
-                    List<String> fileContent;
-                    fileContent = fileExplorerState.readFile();
-                    editorState.fillStorage(fileContent);
-                    context = ContextType.EDITOR;
-                }
-                case SAVE_FILE -> {
-                    var editorContent = editorState.getStringRepresentation();
-                    fileExplorerState.writeFile(editorContent);
-                    context = ContextType.EDITOR;
+                case OPEN_OR_SAVE_FILE -> {
+                    var explorerType = fileExplorerState.getCurrentExplorerType();
+
+                    if (explorerType == FileExplorerState.Type.OPEN) {
+                        List<String> fileContent;
+                        fileContent = fileExplorerState.readFileOrGoToDir();
+
+                        if (fileContent != null) {
+                            editorState.fillStorage(fileContent);
+                            context = ContextType.EDITOR;
+                        }
+                    }
+
+                    if (explorerType == FileExplorerState.Type.SAVE) {
+                        var editorContent = editorState.getStringRepresentation();
+                        var saved = fileExplorerState.writeFileOrGoToDir(editorContent);
+                        if (saved) {
+                            context = ContextType.EDITOR;
+                            editorState.sendDataToTerminal();
+                        }
+                    }
                 }
             }
 
@@ -354,7 +365,7 @@ public class CommandExecutor {
             }
             case FILE_EXPLORER -> {
                 if (ch == CharCode.CARRIAGE_RETURN)
-                    return Action.OPEN_FILE;
+                    return Action.OPEN_OR_SAVE_FILE;
                 if (ch == CharCode.UP_ARROW)
                     return Action.PREVIOUS_ITEM;
                 if (ch == CharCode.DOWN_ARROW)

@@ -17,8 +17,7 @@ public enum Action {
     QUIT,
     OPEN_FILE_EXPLORER,
     OPEN_DIR_EXPLORER,
-    OPEN_FILE,
-    SAVE_FILE,
+    OPEN_OR_SAVE_FILE,
     NEXT_ITEM,
     PREVIOUS_ITEM,
 

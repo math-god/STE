@@ -86,8 +86,7 @@ public class Application {
 
         commands.put(Action.OPEN_FILE_EXPLORER, contextSwitchCommand);
         commands.put(Action.OPEN_DIR_EXPLORER, contextSwitchCommand);
-        commands.put(Action.OPEN_FILE, contextSwitchCommand);
-        commands.put(Action.SAVE_FILE, contextSwitchCommand);
+        commands.put(Action.OPEN_OR_SAVE_FILE, contextSwitchCommand);
         commands.put(Action.NEXT_ITEM, arrowKeysCommand);
         commands.put(Action.PREVIOUS_ITEM, arrowKeysCommand);
 
