@@ -1,4 +1,4 @@
-package context.operation.state;
+package context.operation.state.editor;
 
 import common.CharCode;
 import common.OperationType;

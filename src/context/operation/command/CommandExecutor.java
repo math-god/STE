@@ -3,8 +3,8 @@ package context.operation.command;
 import common.Action;
 import common.CharCode;
 import context.ContextType;
-import context.operation.state.EditorState;
-import context.operation.state.FileExplorerState;
+import context.operation.state.editor.EditorState;
+import context.operation.state.fileexplorer.FileExplorerState;
 
 import java.util.LinkedList;
 import java.util.List;

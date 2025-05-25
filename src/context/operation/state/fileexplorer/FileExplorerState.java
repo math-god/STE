@@ -1,4 +1,4 @@
-package context.operation.state;
+package context.operation.state.fileexplorer;
 
 import common.Action;
 import common.CharCode;
@@ -16,16 +16,12 @@ import java.util.stream.Collectors;
 
 public class FileExplorerState {
 
-    private String path = new File(".").getAbsolutePath();
+    private String path = new File(".").getAbsolutePath().replace("\\.", "");
     private final String ARROW = "<<<";
     private final String PREVIOUS_FOLDER = "\\..";
     private final String CURRENT_FOLDER = "\\.";
-    private final String[] SAVE_HEADER =
-            new String[]{"Save file", "UP - previous item", "DOWN - next item", "ENTER - select",
-                    "Select " + "\"" + CURRENT_FOLDER + "\"" + " to save", "-------------------------"};
-    private final String[] READ_HEADER =
-            new String[]{"Open file", "UP - previous item", "DOWN - next item", "ENTER - select", "-------------------------"};
 
+    private FileExplorerHeaderBuilder.FileExplorerHeader header;
     private int minItemIndex;
     private int itemIndex;
 
@@ -45,14 +41,7 @@ public class FileExplorerState {
 
     public void updateExplorer(Action action) {
         if (explorerItems == null) {
-            if (action == Action.OPEN_FILE_EXPLORER) {
-                type = Type.OPEN;
-                minItemIndex = READ_HEADER.length;
-            } else if (action == Action.OPEN_DIR_EXPLORER) {
-                type = Type.SAVE;
-                minItemIndex = SAVE_HEADER.length;
-            } else
-                throw new RuntimeException("Can't find suitable explorer for given action");
+            startSession(action);
 
             var dir = new File(path);
             fileSizeMap = getFileSizeMap(dir);
@@ -61,26 +50,18 @@ public class FileExplorerState {
             switch (type) {
                 case OPEN -> {
                     explorerItems = getAllFiles(dir);
-                    var formatStrings = getFormatStrings(explorerItems, READ_HEADER.length);
+                    var formatStrings = getFormatStrings(explorerItems, header.getSize());
                     fillStorage(formatStrings);
                 }
                 case SAVE -> {
                     explorerItems = getDirs(dir);
-                    var formatStrings = getFormatStrings(explorerItems, SAVE_HEADER.length);
+                    var formatStrings = getFormatStrings(explorerItems, header.getSize());
                     fillStorage(formatStrings);
                 }
             }
         } else {
-            switch (type) {
-                case OPEN -> {
-                    var formatStrings = getFormatStrings(explorerItems, READ_HEADER.length);
-                    fillStorage(formatStrings);
-                }
-                case SAVE -> {
-                    var formatStrings = getFormatStrings(explorerItems, SAVE_HEADER.length);
-                    fillStorage(formatStrings);
-                }
-            }
+            var formatStrings = getFormatStrings(explorerItems, header.getSize());
+            fillStorage(formatStrings);
         }
 
         consumer.consume(getData());
@@ -153,6 +134,35 @@ public class FileExplorerState {
         return type;
     }
 
+    private void startSession(Action action) {
+        if (action == Action.OPEN_FILE_EXPLORER) {
+            type = Type.OPEN;
+            header = FileExplorerHeaderBuilder.builder()
+                    .item("Open file")
+                    .item("UP - previous item")
+                    .item("DOWN - next item")
+                    .item("ENTER - select")
+                    .line()
+                    .format("Directory: %s", path)
+                    .build();
+            minItemIndex = header.getSize();
+        } else if (action == Action.OPEN_DIR_EXPLORER) {
+            type = Type.SAVE;
+            header = FileExplorerHeaderBuilder.builder()
+                    .item("Save file")
+                    .item("UP - previous item")
+                    .item("DOWN - next item")
+                    .item("ENTER - select")
+                    .item("Select " + "\"" + CURRENT_FOLDER + "\"" + " to save")
+                    .line()
+                    .format("Directory: %s", path)
+                    .build();
+            minItemIndex = header.getSize();
+        } else
+            throw new RuntimeException("Can't find suitable explorer for given action");
+
+    }
+
     private void clear() {
         explorerItems = null;
         type = null;
@@ -188,10 +198,10 @@ public class FileExplorerState {
         if (files == null)
             throw new RuntimeException("Directory doesn't exist");
 
-        var filledArr = new String[files.length + READ_HEADER.length + 1];
-        System.arraycopy(READ_HEADER, 0, filledArr, 0, READ_HEADER.length);
-        filledArr[READ_HEADER.length] = PREVIOUS_FOLDER;
-        System.arraycopy(files, 0, filledArr, READ_HEADER.length + 1, files.length);
+        var filledArr = new String[files.length + header.getSize() + 1];
+        System.arraycopy(header.getHeaderItems(), 0, filledArr, 0, header.getSize());
+        filledArr[header.getSize()] = PREVIOUS_FOLDER;
+        System.arraycopy(files, 0, filledArr, header.getSize() + 1, files.length);
 
         return filledArr;
     }
@@ -205,11 +215,11 @@ public class FileExplorerState {
                 .map(File::getName)
                 .toArray(String[]::new);
 
-        var filledArr = new String[dirsNames.length + SAVE_HEADER.length + 2];
-        System.arraycopy(SAVE_HEADER, 0, filledArr, 0, SAVE_HEADER.length);
-        filledArr[SAVE_HEADER.length] = PREVIOUS_FOLDER;
-        filledArr[SAVE_HEADER.length + 1] = CURRENT_FOLDER;
-        System.arraycopy(dirsNames, 0, filledArr, SAVE_HEADER.length + 2, dirsNames.length);
+        var filledArr = new String[dirsNames.length + header.getSize() + 2];
+        System.arraycopy(header.getHeaderItems(), 0, filledArr, 0, header.getSize());
+        filledArr[header.getSize()] = PREVIOUS_FOLDER;
+        filledArr[header.getSize() + 1] = CURRENT_FOLDER;
+        System.arraycopy(dirsNames, 0, filledArr, header.getSize() + 2, dirsNames.length);
 
         return filledArr;
     }

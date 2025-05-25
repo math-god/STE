@@ -2,8 +2,8 @@ import common.Action;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
 import context.operation.command.CommandExecutor;
-import context.operation.state.EditorState;
-import context.operation.state.FileExplorerState;
+import context.operation.state.editor.EditorState;
+import context.operation.state.fileexplorer.FileExplorerState;
 import input.InputReader;
 import output.TerminalWriter;
 
