@@ -6,6 +6,7 @@ import common.OperationType;
 import context.ContextType;
 import context.dto.TerminalWriteModel;
 import context.dto.TextTerminalWriteModel;
+import context.operation.state.HeaderBuilder;
 import log.FileLogger;
 import output.Consumer;
 
@@ -17,20 +18,21 @@ import java.util.stream.Collectors;
 public class FileExplorerState {
 
     private String path = new File(".").getAbsolutePath().replace("\\.", "");
+
+    private String openedFilePath;
+    private boolean saved;
+
     private final String ARROW = "<<<";
     private final String PREVIOUS_FOLDER = "\\..";
     private final String CURRENT_FOLDER = "\\.";
 
-    private FileExplorerHeaderBuilder.FileExplorerHeader header;
+    private HeaderBuilder.Header header;
     private int minItemIndex;
     private int itemIndex;
 
     private final Collection<String> storage = new ArrayList<>();
     private String[] explorerItems;
-    private Map<String, Long> fileSizeMap;
     private Type type;
-    private String absolutePath;
-
     private final Consumer consumer;
 
     private final Logger logger = FileLogger.getFileLogger(FileExplorerState.class.getName(), "file-explorer-log.txt");
@@ -39,41 +41,44 @@ public class FileExplorerState {
         this.consumer = consumer;
     }
 
-    public void updateExplorer(Action action) {
-        if (explorerItems == null) {
-            startSession(action);
+    public void startExplorer(Action action) {
+        initFields(action);
 
-            var dir = new File(path);
-            fileSizeMap = getFileSizeMap(dir);
-            itemIndex = minItemIndex;
-            absolutePath = dir.getAbsolutePath();
-            switch (type) {
-                case OPEN -> {
-                    explorerItems = getAllFiles(dir);
-                    var formatStrings = getFormatStrings(explorerItems, header.getSize());
-                    fillStorage(formatStrings);
-                }
-                case SAVE -> {
-                    explorerItems = getDirs(dir);
-                    var formatStrings = getFormatStrings(explorerItems, header.getSize());
-                    fillStorage(formatStrings);
-                }
+        switch (type) {
+            case OPEN -> {
+                explorerItems = getAllFiles();
+                var formatStrings = getFormatStrings(explorerItems, header.getSize());
+                fillStorage(formatStrings);
             }
-        } else {
-            var formatStrings = getFormatStrings(explorerItems, header.getSize());
-            fillStorage(formatStrings);
+            case SAVE -> {
+                explorerItems = getDirs();
+                var formatStrings = getFormatStrings(explorerItems, header.getSize());
+                fillStorage(formatStrings);
+            }
         }
 
         consumer.consume(getData());
     }
 
+    public void continueExplorer() {
+        switch (type) {
+            case OPEN -> explorerItems = getAllFiles();
+            case SAVE -> explorerItems = getDirs();
+        }
+
+        var formatStrings = getFormatStrings(explorerItems, header.getSize());
+        fillStorage(formatStrings);
+
+        consumer.consume(getData());
+    }
+
     public List<String> readFileOrGoToDir() {
-        var fileName = absolutePath + "\\" + explorerItems[itemIndex];
+        var fileName = path + "\\" + explorerItems[itemIndex];
         var file = new File(fileName);
 
         if (file.isFile()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-                clear();
+                openedFilePath = fileName;
                 return reader.lines().toList();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -81,15 +86,13 @@ public class FileExplorerState {
         } else if (Objects.equals(explorerItems[itemIndex], PREVIOUS_FOLDER)) {
             var lastSlashIndex = path.lastIndexOf("\\");
             path = path.substring(0, lastSlashIndex);
-            clear();
-            updateExplorer(Action.OPEN_FILE_EXPLORER);
-            return null;
         } else {
             path = path + "\\" + explorerItems[itemIndex];
-            clear();
-            updateExplorer(Action.OPEN_FILE_EXPLORER);
-            return null;
         }
+
+        resetItemIndex();
+        continueExplorer();
+        return null;
     }
 
     public boolean writeFileOrGoToDir(String str) {
@@ -102,19 +105,32 @@ public class FileExplorerState {
                 throw new RuntimeException(e);
             }
 
-            clear();
+            openedFilePath = fileName;
+            saved = true;
             return true;
         } else if (Objects.equals(explorerItems[itemIndex], PREVIOUS_FOLDER)) {
             var lastSlashIndex = path.lastIndexOf("\\");
             path = path.substring(0, lastSlashIndex);
-            clear();
-            updateExplorer(Action.OPEN_DIR_EXPLORER);
-            return false;
         } else {
             path = path + "\\" + explorerItems[itemIndex];
-            clear();
-            updateExplorer(Action.OPEN_DIR_EXPLORER);
-            return false;
+        }
+
+        resetItemIndex();
+        continueExplorer();
+        return false;
+    }
+
+    public void writeFile(String str) {
+        var fileName = openedFilePath;
+        if (fileName == null)
+            throw new NullPointerException("File name is null");
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            writer.write(str);
+            openedFilePath = fileName;
+            saved = true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -134,10 +150,26 @@ public class FileExplorerState {
         return type;
     }
 
-    private void startSession(Action action) {
+    public String getOpenedFilePath() {
+        return openedFilePath;
+    }
+
+    public boolean isSaved() {
+        return saved;
+    }
+
+    public void setUnsaved() {
+        saved = false;
+    }
+
+    private void resetItemIndex() {
+        itemIndex = minItemIndex;
+    }
+
+    private void initFields(Action action) {
         if (action == Action.OPEN_FILE_EXPLORER) {
             type = Type.OPEN;
-            header = FileExplorerHeaderBuilder.builder()
+            header = HeaderBuilder.builder()
                     .item("Open file")
                     .item("UP - previous item")
                     .item("DOWN - next item")
@@ -148,7 +180,7 @@ public class FileExplorerState {
             minItemIndex = header.getSize();
         } else if (action == Action.OPEN_DIR_EXPLORER) {
             type = Type.SAVE;
-            header = FileExplorerHeaderBuilder.builder()
+            header = HeaderBuilder.builder()
                     .item("Save file")
                     .item("UP - previous item")
                     .item("DOWN - next item")
@@ -161,18 +193,13 @@ public class FileExplorerState {
         } else
             throw new RuntimeException("Can't find suitable explorer for given action");
 
-    }
-
-    private void clear() {
-        explorerItems = null;
-        type = null;
-        fileSizeMap = null;
-        absolutePath = null;
+        resetItemIndex();
     }
 
     private void fillStorage(String[] formatStrings) {
         storage.clear();
 
+        var fileSizeMap = getFileSizeMap();
         for (var i = 0; i < formatStrings.length; i++) {
             var fileSize = fileSizeMap.get(explorerItems[i]);
             var fileSizeStr = fileSize != null ? fileSize + " bytes" : "";
@@ -193,8 +220,8 @@ public class FileExplorerState {
         return new TextTerminalWriteModel(result.toString(), OperationType.TEXT, ContextType.FILE_EXPLORER);
     }
 
-    private String[] getAllFiles(File dir) {
-        var files = dir.list();
+    private String[] getAllFiles() {
+        var files = new File(path).list();
         if (files == null)
             throw new RuntimeException("Directory doesn't exist");
 
@@ -206,8 +233,8 @@ public class FileExplorerState {
         return filledArr;
     }
 
-    private String[] getDirs(File dir) {
-        var dirs = dir.listFiles(File::isDirectory);
+    private String[] getDirs() {
+        var dirs = new File(path).listFiles(File::isDirectory);
         if (dirs == null)
             throw new RuntimeException("Directory doesn't exist");
 
@@ -243,8 +270,8 @@ public class FileExplorerState {
         return resArr;
     }
 
-    private Map<String, Long> getFileSizeMap(File dir) {
-        var dirs = dir.listFiles(File::isFile);
+    private Map<String, Long> getFileSizeMap() {
+        var dirs = new File(path).listFiles(File::isFile);
         if (dirs == null)
             throw new RuntimeException("Directory doesn't exist");
 

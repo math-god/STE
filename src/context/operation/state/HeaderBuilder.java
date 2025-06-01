@@ -1,53 +1,53 @@
-package context.operation.state.fileexplorer;
+package context.operation.state;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class FileExplorerHeaderBuilder {
+public class HeaderBuilder {
 
-    private static FileExplorerHeaderBuilder instance;
+    private static HeaderBuilder instance;
 
     private final Collection<String> temp;
 
-    private FileExplorerHeaderBuilder(Collection<String> temp) {
+    private HeaderBuilder(Collection<String> temp) {
         this.temp = temp;
     }
 
-    public static FileExplorerHeaderBuilder builder() {
-        instance = new FileExplorerHeaderBuilder(new ArrayList<>());
+    public static HeaderBuilder builder() {
+        instance = new HeaderBuilder(new ArrayList<>());
 
         return instance;
     }
 
-    public FileExplorerHeaderBuilder item(String str) {
+    public HeaderBuilder item(String str) {
         temp.add(str);
 
         return instance;
     }
 
-    public FileExplorerHeaderBuilder line() {
+    public HeaderBuilder line() {
         temp.add("-------------------------");
 
         return instance;
     }
 
-    public FileExplorerHeaderBuilder format(String formatStr, Object... objects) {
+    public HeaderBuilder format(String formatStr, Object... objects) {
         temp.add(formatStr.formatted(objects));
 
         return instance;
     }
 
-    public FileExplorerHeader build() {
+    public Header build() {
         var headerItems = temp.toArray(String[]::new);
 
-        return new FileExplorerHeader(headerItems);
+        return new Header(headerItems);
     }
 
-    public static class FileExplorerHeader {
+    public static class Header {
         private final String[] headerItems;
         private final int size;
 
-        private FileExplorerHeader(String[] headerItems) {
+        private Header(String[] headerItems) {
             this.headerItems = headerItems;
             this.size = headerItems.length;
         }

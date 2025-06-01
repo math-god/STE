@@ -56,7 +56,7 @@ public class TerminalWriter implements Consumer {
             case EDITOR -> System.out.print(SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START +
                     ERASE_IN_DISPLAY + text + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE
             );
-            case FILE_EXPLORER ->
+            case FILE_EXPLORER, DIALOG ->
                     System.out.print(SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_IN_DISPLAY + text);
         }
     }

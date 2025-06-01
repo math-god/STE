@@ -77,7 +77,7 @@ public class CommandExecutor {
                     default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
                 }
 
-                fileExplorerState.updateExplorer(action);
+                fileExplorerState.continueExplorer();
             }
 
             return true;
@@ -110,6 +110,7 @@ public class CommandExecutor {
                 editorState.deleteRow(secondRowIndex);
             }
 
+            fileExplorerState.setUnsaved();
             undoComplete = false;
 
             return true;
@@ -128,6 +129,7 @@ public class CommandExecutor {
                 editorState.moveCursorRight();
             }
 
+            fileExplorerState.setUnsaved();
             undoComplete = true;
         }
 
@@ -162,6 +164,7 @@ public class CommandExecutor {
             editorState.setCursorRowIndex(rowIndex + 1);
             editorState.setCursorColumnIndex(0);
 
+            fileExplorerState.setUnsaved();
             undoComplete = false;
             return true;
         }
@@ -174,6 +177,7 @@ public class CommandExecutor {
             editorState.deleteChar(rowIndex, columnIndex);
             editorState.deleteRow(rowIndex + 1);
 
+            fileExplorerState.setUnsaved();
             undoComplete = true;
         }
 
@@ -216,7 +220,7 @@ public class CommandExecutor {
         @Override
         public boolean execute() {
             if (!isArgPresent)
-                throw new IllegalArgumentException("Arg is not present in an unary command");
+                throw new IllegalArgumentException("Arg is not present in an argument command");
 
             editorState.addChar(ch);
 
@@ -225,6 +229,7 @@ public class CommandExecutor {
 
             editorState.moveCursorRight();
 
+            fileExplorerState.setUnsaved();
             undoComplete = false;
             return true;
         }
@@ -240,6 +245,7 @@ public class CommandExecutor {
             editorState.setCursorRowIndex(rowIndex);
             editorState.setCursorColumnIndex(columnIndex);
 
+            fileExplorerState.setUnsaved();
             undoComplete = true;
         }
 
@@ -260,9 +266,22 @@ public class CommandExecutor {
         @Override
         public boolean execute() {
             switch (action) {
-                case OPEN_FILE_EXPLORER, OPEN_DIR_EXPLORER -> {
+                case OPEN_FILE_EXPLORER -> {
                     context = ContextType.FILE_EXPLORER;
-                    fileExplorerState.updateExplorer(action);
+                    fileExplorerState.startExplorer(action);
+                }
+                case OPEN_DIR_EXPLORER -> {
+                    if (fileExplorerState.isSaved())
+                        break;
+
+                    if (fileExplorerState.getOpenedFilePath() != null) {
+                        var editorContent = editorState.getStringRepresentation();
+                        fileExplorerState.writeFile(editorContent);
+                        break;
+                    }
+
+                    context = ContextType.FILE_EXPLORER;
+                    fileExplorerState.startExplorer(action);
                 }
                 case OPEN_OR_SAVE_FILE -> {
                     var explorerType = fileExplorerState.getCurrentExplorerType();
@@ -370,6 +389,9 @@ public class CommandExecutor {
                     return Action.PREVIOUS_ITEM;
                 if (ch == CharCode.DOWN_ARROW)
                     return Action.NEXT_ITEM;
+            }
+            case DIALOG -> {
+
             }
             default -> {
 
