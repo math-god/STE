@@ -2,6 +2,7 @@ import common.Action;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
 import context.operation.command.CommandExecutor;
+import context.operation.state.dialog.DialogState;
 import context.operation.state.editor.EditorState;
 import context.operation.state.fileexplorer.FileExplorerState;
 import input.InputReader;
@@ -57,7 +58,8 @@ public class Application {
         var commands = new HashMap<Action, CommandExecutor.Command>();
         var editorState = new EditorState(terminalWriter);
         var fileExplorerState = new FileExplorerState(terminalWriter);
-        var executor = new CommandExecutor(editorState, fileExplorerState, commands);
+        var dialogState = new DialogState(terminalWriter);
+        var executor = new CommandExecutor(editorState, fileExplorerState, dialogState, commands);
 
         var editorPrintableInputCommand = executor.new EditorPrintableInputCommand();
         var editorDeleteCharCommand = executor.new EditorDeleteCharCommand();
@@ -87,6 +89,7 @@ public class Application {
         commands.put(Action.OPEN_FILE_EXPLORER, contextSwitchCommand);
         commands.put(Action.OPEN_DIR_EXPLORER, contextSwitchCommand);
         commands.put(Action.OPEN_OR_SAVE_FILE, contextSwitchCommand);
+        commands.put(Action.DIALOG_ACTIONS, contextSwitchCommand);
         commands.put(Action.NEXT_ITEM, arrowKeysCommand);
         commands.put(Action.PREVIOUS_ITEM, arrowKeysCommand);
 

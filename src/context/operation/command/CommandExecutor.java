@@ -3,17 +3,22 @@ package context.operation.command;
 import common.Action;
 import common.CharCode;
 import context.ContextType;
+import context.operation.state.dialog.DialogState;
 import context.operation.state.editor.EditorState;
 import context.operation.state.fileexplorer.FileExplorerState;
+import log.FileLogger;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class CommandExecutor {
 
     private final EditorState editorState;
     private final FileExplorerState fileExplorerState;
+    private final DialogState dialogState;
+
     private final Map<Action, Command> commands;
     private final LinkedList<Undoable> commandLog = new LinkedList<>();
 
@@ -21,11 +26,15 @@ public class CommandExecutor {
     private Action action;
     private int undoStep = 0;
 
+    private final Logger logger = FileLogger.getFileLogger(CommandExecutor.class.getName(), "command-executor.txt");
+
     public CommandExecutor(EditorState editorState,
                            FileExplorerState fileExplorerState,
+                           DialogState dialogState,
                            Map<Action, Command> commands) {
         this.editorState = editorState;
         this.fileExplorerState = fileExplorerState;
+        this.dialogState = dialogState;
         this.commands = commands;
     }
 
@@ -78,6 +87,16 @@ public class CommandExecutor {
                 }
 
                 fileExplorerState.continueExplorer();
+            }
+
+            if (context == ContextType.DIALOG) {
+                switch (action) {
+                    case PREVIOUS_ITEM -> dialogState.previousItem();
+                    case NEXT_ITEM -> dialogState.nextItem();
+                    default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
+                }
+
+                dialogState.continueDialog();
             }
 
             return true;
@@ -267,6 +286,12 @@ public class CommandExecutor {
         public boolean execute() {
             switch (action) {
                 case OPEN_FILE_EXPLORER -> {
+                    if (!fileExplorerState.isSaved()) {
+                        context = ContextType.DIALOG;
+                        dialogState.startDialog(DialogState.DialogType.SAVE_BEFORE_OPEN);
+                        break;
+                    }
+
                     context = ContextType.FILE_EXPLORER;
                     fileExplorerState.startExplorer(action);
                 }
@@ -302,6 +327,33 @@ public class CommandExecutor {
                         if (saved) {
                             context = ContextType.EDITOR;
                             editorState.sendDataToTerminal();
+                        }
+                    }
+                }
+
+                case DIALOG_ACTIONS -> {
+                    var dialogType = dialogState.getType();
+                    switch (dialogType) {
+                        case SAVE_BEFORE_OPEN -> {
+                            var answer = dialogState.finishDialog();
+                            if (answer == DialogState.DialogAnswer.YES) {
+                                if (fileExplorerState.getOpenedFilePath() != null) {
+                                    var editorContent = editorState.getStringRepresentation();
+                                    fileExplorerState.writeFile(editorContent);
+
+                                    context = ContextType.FILE_EXPLORER;
+                                    fileExplorerState.startExplorer(Action.OPEN_FILE_EXPLORER);
+                                    break;
+                                }
+
+                                context = ContextType.FILE_EXPLORER;
+                                fileExplorerState.startExplorer(Action.OPEN_DIR_EXPLORER);
+                            }
+
+                            if (answer == DialogState.DialogAnswer.NO) {
+                                context = ContextType.FILE_EXPLORER;
+                                fileExplorerState.startExplorer(Action.OPEN_FILE_EXPLORER);
+                            }
                         }
                     }
                 }
@@ -391,10 +443,12 @@ public class CommandExecutor {
                     return Action.NEXT_ITEM;
             }
             case DIALOG -> {
-
-            }
-            default -> {
-
+                if (ch == CharCode.CARRIAGE_RETURN)
+                    return Action.DIALOG_ACTIONS;
+                if (ch == CharCode.UP_ARROW)
+                    return Action.PREVIOUS_ITEM;
+                if (ch == CharCode.DOWN_ARROW)
+                    return Action.NEXT_ITEM;
             }
         }
 

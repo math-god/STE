@@ -19,6 +19,7 @@ public class DialogState {
     private int itemIndex;
     private final Collection<String> storage = new ArrayList<>();
     private String[] dialogItems;
+    private DialogType type;
     private final Consumer consumer;
 
     public DialogState(Consumer consumer) {
@@ -33,18 +34,25 @@ public class DialogState {
 
         minItemIndex = header.getSize();
         itemIndex = minItemIndex;
+        this.type = type;
 
         dialogItems = new String[header.getSize() + type.answers.length];
         System.arraycopy(header.getHeaderItems(), 0, dialogItems, 0, header.getSize());
-        System.arraycopy(type.answers, 0, dialogItems, header.getSize(), type.answers.length);
+
+        var answers = Arrays.stream(type.answers)
+                .map(m -> m.answer)
+                .toArray(String[]::new);
+        System.arraycopy(answers, 0, dialogItems, header.getSize(), type.answers.length);
 
         fillStorage();
-
-        consumer.consume(getData());
     }
 
     public void continueDialog() {
         fillStorage();
+    }
+
+    public DialogAnswer finishDialog() {
+        return type.answers[itemIndex - minItemIndex];
     }
 
     public void previousItem() {
@@ -59,6 +67,10 @@ public class DialogState {
         itemIndex++;
     }
 
+    public DialogType getType() {
+        return type;
+    }
+
     private void fillStorage() {
         storage.clear();
 
@@ -69,6 +81,8 @@ public class DialogState {
             else
                 storage.add(String.format(dialogItems[i]) + (char) CharCode.CARRIAGE_RETURN);
         }
+
+        consumer.consume(getData());
     }
 
     private TerminalWriteModel getData() {
@@ -90,22 +104,21 @@ public class DialogState {
             this.answer = answer;
         }
 
-        static String[] getAnswers() {
+        static DialogAnswer[] getAnswers() {
             return Arrays.stream(DialogAnswer.values())
-                    .map(m -> m.answer)
-                    .toArray(String[]::new);
+                    .toArray(DialogAnswer[]::new);
         }
     }
 
     public enum DialogType {
-        OPEN_FILE("Do you want to save current file before opening?", DialogAnswer.getAnswers()),
+        SAVE_BEFORE_OPEN("Do you want to save current file before opening?", DialogAnswer.getAnswers()),
 
         ;
 
         final String question;
-        final String[] answers;
+        final DialogAnswer[] answers;
 
-        DialogType(String question, String[] answers) {
+        DialogType(String question, DialogAnswer[] answers) {
             this.question = question;
             this.answers = answers;
         }

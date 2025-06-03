@@ -79,6 +79,7 @@ public class FileExplorerState {
         if (file.isFile()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
                 openedFilePath = fileName;
+                saved = true;
                 return reader.lines().toList();
             } catch (IOException e) {
                 throw new RuntimeException(e);
