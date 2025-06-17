@@ -15,6 +15,7 @@ public enum Action {
     UNDO,
     DO,
     QUIT,
+    INPUT_FILE_NAME,
     OPEN_FILE_EXPLORER,
     OPEN_DIR_EXPLORER,
     OPEN_OR_SAVE_FILE,

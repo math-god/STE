@@ -85,8 +85,6 @@ public class CommandExecutor {
                     case NEXT_ITEM -> fileExplorerState.nextItem();
                     default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
                 }
-
-                fileExplorerState.continueExplorer();
             }
 
             if (context == ContextType.DIALOG) {
@@ -279,6 +277,29 @@ public class CommandExecutor {
         }
     }
 
+    public class SaveFileExplorerInputFileNameCommand implements ArgumentCommand {
+
+        private int ch;
+        private boolean isArgPresent;
+
+        @Override
+        public boolean execute() {
+            if (!isArgPresent)
+                throw new IllegalArgumentException("Arg is not present in an argument command");
+
+            fileExplorerState.inputFileName(ch);
+
+
+            return true;
+        }
+
+        @Override
+        public void setArg(int arg) {
+            ch = arg;
+            isArgPresent = true;
+        }
+    }
+
 
     public class ContextSwitchCommand implements Command {
 
@@ -435,6 +456,8 @@ public class CommandExecutor {
                     return Action.UNDO;
             }
             case FILE_EXPLORER -> {
+                if (ch >= CharCode.FIRST_PRINTABLE_CHAR && ch <= CharCode.LAST_PRINTABLE_CHAR)
+                    return Action.INPUT_FILE_NAME;
                 if (ch == CharCode.CARRIAGE_RETURN)
                     return Action.OPEN_OR_SAVE_FILE;
                 if (ch == CharCode.UP_ARROW)

@@ -1,15 +1,15 @@
 package context.operation.state.editor;
 
 import common.CharCode;
-import common.OperationType;
-import context.ContextType;
-import context.dto.CursorTerminalWriteModel;
-import context.dto.TerminalWriteModel;
-import context.dto.TextTerminalWriteModel;
-import output.Consumer;
+import common.terminal.Platform;
+import context.operation.state.OutputUtils;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import static app.Application.PLATFORM;
+import static common.escape.Escape.*;
+import static common.escape.Escape.SET_CURSOR_VISIBLE;
 
 public class EditorState {
     private int cursorRowIndex = 0;
@@ -17,17 +17,15 @@ public class EditorState {
     private int cursorColumnEdgeIndex = 0;
 
     private LinkedList<StringBuilder> storage;
-    private final Consumer consumer;
+
+    private final String OUTPUT_STRING = SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START +
+            ERASE_IN_DISPLAY + "%s" + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE;
 
     private int size;
 
     {
         storage = new LinkedList<>();
         storage.add(new StringBuilder());
-    }
-
-    public EditorState(Consumer consumer) {
-        this.consumer = consumer;
     }
 
     public void addChar(int ch) {
@@ -41,7 +39,7 @@ public class EditorState {
         }
         size++;
 
-        consumer.consume(getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
     }
 
     public void deleteChar(int rowIndex, int columnIndex) {
@@ -50,7 +48,7 @@ public class EditorState {
         row.deleteCharAt(columnIndex);
         size--;
 
-        consumer.consume(getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
     }
 
     public int deleteCharAtCursorAndGetChar() {
@@ -61,7 +59,7 @@ public class EditorState {
         row.deleteCharAt(cursorColumnIndex);
         size--;
 
-        consumer.consume(getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
         return ch;
     }
 
@@ -78,7 +76,7 @@ public class EditorState {
             storage.add(cursorRowIndex + 1, toRow);
         }
 
-        consumer.consume(getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
         return storage.indexOf(toRow);
     }
 
@@ -87,12 +85,12 @@ public class EditorState {
         var secondRow = storage.get(secondRowIndex);
 
         firstRow.append(secondRow);
-        consumer.consume(getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
     }
 
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
-        consumer.consume(getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
     }
 
     public void fillStorage(List<String> lines) {
@@ -108,13 +106,13 @@ public class EditorState {
         cursorColumnIndex = 0;
         cursorColumnEdgeIndex = 0;
 
-        consumer.consume(getTextData());
-        consumer.consume(getCursorData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void sendDataToTerminal() {
-        consumer.consume(getTextData());
-        consumer.consume(getCursorData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public String getStringRepresentation() {
@@ -141,7 +139,7 @@ public class EditorState {
             cursorColumnEdgeIndex++;
         }
 
-        consumer.consume(getCursorData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void moveCursorLeft() {
@@ -156,7 +154,7 @@ public class EditorState {
             cursorColumnEdgeIndex--;
         }
 
-        consumer.consume(getCursorData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void moveCursorUp() {
@@ -166,7 +164,7 @@ public class EditorState {
         cursorColumnIndex = Math.min(previousRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex--;
 
-        consumer.consume(getCursorData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void moveCursorDown() {
@@ -176,7 +174,7 @@ public class EditorState {
         cursorColumnIndex = Math.min(nextRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex++;
 
-        consumer.consume(getCursorData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public Integer getCursorRowIndex() {
@@ -191,7 +189,7 @@ public class EditorState {
         if (row < 0) return;
         this.cursorRowIndex = row;
 
-        consumer.consume(getCursorData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void setCursorColumnIndex(Integer column) {
@@ -199,7 +197,7 @@ public class EditorState {
         this.cursorColumnIndex = column;
         this.cursorColumnEdgeIndex = column;
 
-        consumer.consume(getCursorData());
+        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public int getTextSize() {
@@ -210,14 +208,14 @@ public class EditorState {
         return storage.size();
     }
 
-    private TerminalWriteModel getTextData() {
-        var result = new StringBuilder();
-        storage.forEach(result::append);
+    private String getTextData() {
+        var stringBuilder = new StringBuilder();
+        storage.forEach(stringBuilder::append);
 
-        return new TextTerminalWriteModel(result.toString(), OperationType.TEXT, ContextType.EDITOR);
-    }
+        var result = stringBuilder.toString();
+        if (PLATFORM == Platform.WINDOWS)
+            result = result.replace("\r", "\r\n");
 
-    private TerminalWriteModel getCursorData() {
-        return new CursorTerminalWriteModel(cursorRowIndex, cursorColumnIndex, OperationType.CURSOR, ContextType.EDITOR);
+        return result;
     }
 }

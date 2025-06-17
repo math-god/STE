@@ -1,16 +1,16 @@
 package context.operation.state.dialog;
 
 import common.CharCode;
-import common.OperationType;
-import context.ContextType;
-import context.dto.TerminalWriteModel;
-import context.dto.TextTerminalWriteModel;
+import common.terminal.Platform;
 import context.operation.state.HeaderBuilder;
-import output.Consumer;
+import context.operation.state.OutputUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+
+import static app.Application.PLATFORM;
+import static common.escape.Escape.*;
 
 public class DialogState {
 
@@ -20,11 +20,7 @@ public class DialogState {
     private final Collection<String> storage = new ArrayList<>();
     private String[] dialogItems;
     private DialogType type;
-    private final Consumer consumer;
-
-    public DialogState(Consumer consumer) {
-        this.consumer = consumer;
-    }
+    private final String OUTPUT_STRING = SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_IN_DISPLAY + "%s";
 
     public void startDialog(DialogType type) {
         var header = HeaderBuilder.builder()
@@ -82,14 +78,18 @@ public class DialogState {
                 storage.add(String.format(dialogItems[i]) + (char) CharCode.CARRIAGE_RETURN);
         }
 
-        consumer.consume(getData());
+        OutputUtils.writeText(OUTPUT_STRING, getData());
     }
 
-    private TerminalWriteModel getData() {
-        var result = new StringBuilder();
-        storage.forEach(result::append);
+    private String getData() {
+        var stringBuilder = new StringBuilder();
+        storage.forEach(stringBuilder::append);
 
-        return new TextTerminalWriteModel(result.toString(), OperationType.TEXT, ContextType.DIALOG);
+        var result = stringBuilder.toString();
+        if (PLATFORM == Platform.WINDOWS)
+            result = result.replace("\r", "\r\n");
+
+        return result;
     }
 
     public enum DialogAnswer {

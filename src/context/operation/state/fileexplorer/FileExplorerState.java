@@ -2,18 +2,18 @@ package context.operation.state.fileexplorer;
 
 import common.Action;
 import common.CharCode;
-import common.OperationType;
-import context.ContextType;
-import context.dto.TerminalWriteModel;
-import context.dto.TextTerminalWriteModel;
+import common.terminal.Platform;
 import context.operation.state.HeaderBuilder;
+import context.operation.state.OutputUtils;
 import log.FileLogger;
-import output.Consumer;
 
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static app.Application.PLATFORM;
+import static common.escape.Escape.*;
 
 public class FileExplorerState {
 
@@ -21,8 +21,6 @@ public class FileExplorerState {
 
     private String openedFilePath;
     private boolean saved;
-
-    private final String ARROW = "<<<";
     private final String PREVIOUS_FOLDER = "\\..";
     private final String CURRENT_FOLDER = "\\.";
 
@@ -30,46 +28,24 @@ public class FileExplorerState {
     private int minItemIndex;
     private int itemIndex;
 
+    private int inputColumnIndex;
+    private String fileName;
+
     private final Collection<String> storage = new ArrayList<>();
     private String[] explorerItems;
     private Type type;
-    private final Consumer consumer;
+
+    private String outputString;
 
     private final Logger logger = FileLogger.getFileLogger(FileExplorerState.class.getName(), "file-explorer-log.txt");
-
-    public FileExplorerState(Consumer consumer) {
-        this.consumer = consumer;
-    }
 
     public void startExplorer(Action action) {
         initFields(action);
 
-        switch (type) {
-            case OPEN -> {
-                explorerItems = getAllFiles();
-                var formatStrings = getFormatStrings(explorerItems, header.getSize());
-                fillStorage(formatStrings);
-            }
-            case SAVE -> {
-                explorerItems = getDirs();
-                var formatStrings = getFormatStrings(explorerItems, header.getSize());
-                fillStorage(formatStrings);
-            }
-        }
-
-        consumer.consume(getData());
-    }
-
-    public void continueExplorer() {
-        switch (type) {
-            case OPEN -> explorerItems = getAllFiles();
-            case SAVE -> explorerItems = getDirs();
-        }
-
-        var formatStrings = getFormatStrings(explorerItems, header.getSize());
+        var formatStrings = getFormatStrings();
         fillStorage(formatStrings);
 
-        consumer.consume(getData());
+        writeTerminal();
     }
 
     public List<String> readFileOrGoToDir() {
@@ -97,16 +73,16 @@ public class FileExplorerState {
     }
 
     public boolean writeFileOrGoToDir(String str) {
-        var fileName = path + "\\" + "text.txt";
+        var filePath = path + "\\" + fileName;
 
         if (Objects.equals(explorerItems[itemIndex], CURRENT_FOLDER)) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
                 writer.write(str);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            openedFilePath = fileName;
+            openedFilePath = filePath;
             saved = true;
             return true;
         } else if (Objects.equals(explorerItems[itemIndex], PREVIOUS_FOLDER)) {
@@ -135,16 +111,24 @@ public class FileExplorerState {
         }
     }
 
+    public void inputFileName(int ch) {
+        fileName += (char) ch;
+        inputColumnIndex++;
+        continueExplorer();
+    }
+
     public void previousItem() {
         if (itemIndex == minItemIndex) return;
 
         itemIndex--;
+        continueExplorer();
     }
 
     public void nextItem() {
         if (itemIndex == storage.size() - 1) return;
 
         itemIndex++;
+        continueExplorer();
     }
 
     public Type getCurrentExplorerType() {
@@ -170,6 +154,7 @@ public class FileExplorerState {
     private void initFields(Action action) {
         if (action == Action.OPEN_FILE_EXPLORER) {
             type = Type.OPEN;
+
             header = HeaderBuilder.builder()
                     .item("Open file")
                     .item("UP - previous item")
@@ -179,8 +164,14 @@ public class FileExplorerState {
                     .format("Directory: %s", path)
                     .build();
             minItemIndex = header.getSize();
+            outputString = SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_IN_DISPLAY + "%s";
+
+            explorerItems = getAllFiles();
         } else if (action == Action.OPEN_DIR_EXPLORER) {
             type = Type.SAVE;
+
+            var fileNameItem = "File name: %s";
+            fileName = "";
             header = HeaderBuilder.builder()
                     .item("Save file")
                     .item("UP - previous item")
@@ -189,12 +180,58 @@ public class FileExplorerState {
                     .item("Select " + "\"" + CURRENT_FOLDER + "\"" + " to save")
                     .line()
                     .format("Directory: %s", path)
+                    .format(fileNameItem, fileName)
                     .build();
             minItemIndex = header.getSize();
+            outputString = SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_IN_DISPLAY + "%s" + SET_CURSOR_VISIBLE;
+            inputColumnIndex = 11;
+
+            explorerItems = getDirs();
         } else
             throw new RuntimeException("Can't find suitable explorer for given action");
 
         resetItemIndex();
+    }
+
+    private void updateSaveExplorerHeader() {
+        var fileNameItem = "File name: %s";
+
+        header = HeaderBuilder.builder()
+                .item("Save file")
+                .item("UP - previous item")
+                .item("DOWN - next item")
+                .item("ENTER - select")
+                .item("Select " + "\"" + CURRENT_FOLDER + "\"" + " to save")
+                .line()
+                .format("Directory: %s", path)
+                .format(fileNameItem, fileName)
+                .build();
+    }
+
+    private void continueExplorer() {
+        switch (type) {
+            case OPEN -> explorerItems = getAllFiles();
+            case SAVE -> {
+                updateSaveExplorerHeader();
+                explorerItems = getDirs();
+            }
+        }
+
+        var formatStrings = getFormatStrings();
+        fillStorage(formatStrings);
+
+        writeTerminal();
+    }
+
+    private void writeTerminal() {
+        if (type == Type.OPEN) {
+            OutputUtils.writeText(outputString, getTextData());
+        } else if (type == Type.SAVE) {
+            OutputUtils.writeText(outputString, getTextData());
+
+            var fileNameItemIndex = header.getSize() - 1;
+            OutputUtils.writeCursor(fileNameItemIndex, inputColumnIndex);
+        }
     }
 
     private void fillStorage(String[] formatStrings) {
@@ -205,6 +242,7 @@ public class FileExplorerState {
             var fileSize = fileSizeMap.get(explorerItems[i]);
             var fileSizeStr = fileSize != null ? fileSize + " bytes" : "";
 
+            String ARROW = "<<<";
             if (i == itemIndex)
                 storage.add(String.format(formatStrings[itemIndex], ARROW, fileSizeStr)
                         + (char) CharCode.CARRIAGE_RETURN);
@@ -214,11 +252,15 @@ public class FileExplorerState {
         }
     }
 
-    private TerminalWriteModel getData() {
-        var result = new StringBuilder();
-        storage.forEach(result::append);
+    private String getTextData() {
+        var stringBuilder = new StringBuilder();
+        storage.forEach(stringBuilder::append);
 
-        return new TextTerminalWriteModel(result.toString(), OperationType.TEXT, ContextType.FILE_EXPLORER);
+        var result = stringBuilder.toString();
+        if (PLATFORM == Platform.WINDOWS)
+            result = result.replace("\r", "\r\n");
+
+        return result;
     }
 
     private String[] getAllFiles() {
@@ -252,20 +294,22 @@ public class FileExplorerState {
         return filledArr;
     }
 
-    private String[] getFormatStrings(String[] arr, int from) {
-        var biggestSizeArr = new String[arr.length - from];
-        System.arraycopy(arr, from, biggestSizeArr, 0, arr.length - from);
+    private String[] getFormatStrings() {
+        var from = header.getSize();
+
+        var biggestSizeArr = new String[explorerItems.length - from];
+        System.arraycopy(explorerItems, from, biggestSizeArr, 0, explorerItems.length - from);
         var biggestStrSize = Arrays.stream(biggestSizeArr)
                 .max(Comparator.comparingInt(String::length))
                 .orElseThrow()
                 .length();
 
-        var resArr = new String[arr.length];
-        System.arraycopy(arr, 0, resArr, 0, arr.length);
-        for (var i = from; i < arr.length; i++) {
-            var offset = 10 + biggestStrSize - arr[i].length();
+        var resArr = new String[explorerItems.length];
+        System.arraycopy(explorerItems, 0, resArr, 0, explorerItems.length);
+        for (var i = from; i < explorerItems.length; i++) {
+            var offset = 10 + biggestStrSize - explorerItems[i].length();
             var sizeFormat = "%" + offset + "s";
-            resArr[i] = arr[i] + " %s " + sizeFormat;
+            resArr[i] = explorerItems[i] + " %s " + sizeFormat;
         }
 
         return resArr;

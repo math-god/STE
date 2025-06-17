@@ -1,12 +1,13 @@
+package app;
+
 import common.Action;
+import common.terminal.Platform;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
 import context.operation.command.CommandExecutor;
 import context.operation.state.dialog.DialogState;
 import context.operation.state.editor.EditorState;
 import context.operation.state.fileexplorer.FileExplorerState;
-import input.InputReader;
-import output.TerminalWriter;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -16,8 +17,9 @@ import static common.escape.Escape.SET_CURSOR_AT_START;
 
 public class Application {
     private static InputReader inputReader;
-    private static TerminalWriter terminalWriter;
     private static Terminal terminal;
+
+    public final static Platform PLATFORM = getPlatform();
 
     public static void main(String[] args) {
         run();
@@ -30,7 +32,6 @@ public class Application {
             while (true) {
                 var res = inputReader.read();
                 if (!res) break;
-                terminalWriter.write();
             }
         } catch (IllegalArgumentException | IOException ex) {
             System.out.print(ERASE_SCREEN);
@@ -45,8 +46,6 @@ public class Application {
         terminal = new WindowsTerminal();
         terminal.enableRawMode();
 
-        terminalWriter = new TerminalWriter();
-
         var commands = initExecutor();
         inputReader = new InputReader(commands);
 
@@ -56,9 +55,9 @@ public class Application {
 
     private static CommandExecutor initExecutor() {
         var commands = new HashMap<Action, CommandExecutor.Command>();
-        var editorState = new EditorState(terminalWriter);
-        var fileExplorerState = new FileExplorerState(terminalWriter);
-        var dialogState = new DialogState(terminalWriter);
+        var editorState = new EditorState();
+        var fileExplorerState = new FileExplorerState();
+        var dialogState = new DialogState();
         var executor = new CommandExecutor(editorState, fileExplorerState, dialogState, commands);
 
         var editorPrintableInputCommand = executor.new EditorPrintableInputCommand();
@@ -69,8 +68,10 @@ public class Application {
         var undoCommand = executor.new UndoCommand();
         var quitCommand = executor.new QuitCommand();
         var contextSwitchCommand = executor.new ContextSwitchCommand();
+        var inputFileName = executor.new SaveFileExplorerInputFileNameCommand();
 
         commands.put(Action.INPUT_PRINTABLE_CHAR, editorPrintableInputCommand);
+        commands.put(Action.INPUT_FILE_NAME, inputFileName);
 
         commands.put(Action.BACKSPACE_DELETE, editorDeleteCharCommand);
         commands.put(Action.DEL_DELETE, editorDeleteCharCommand);
@@ -98,5 +99,24 @@ public class Application {
 
     private static void exit() {
         terminal.disableRawMode();
+    }
+
+    private static Platform getPlatform() {
+        var windows = "windows";
+        var mac = "mac";
+        var linux = "linux";
+
+        var systemName = System.getProperty("os.name");
+
+        if (systemName.toLowerCase().contains(windows))
+            return Platform.WINDOWS;
+
+        if (systemName.toLowerCase().contains(mac))
+            return Platform.MAC;
+
+        if (systemName.toLowerCase().contains(linux))
+            return Platform.LINUX;
+
+        throw new RuntimeException("Can't determine OS");
     }
 }

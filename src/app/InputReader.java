@@ -1,4 +1,4 @@
-package input;
+package app;
 
 import common.CharCode;
 import context.operation.command.CommandExecutor;
