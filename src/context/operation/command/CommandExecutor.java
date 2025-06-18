@@ -38,10 +38,6 @@ public class CommandExecutor {
         this.commands = commands;
     }
 
-    public static ContextType getContext() {
-        return context;
-    }
-
     public boolean execute(int ch) {
         boolean res;
         action = getActionByChar(ch);
@@ -83,6 +79,8 @@ public class CommandExecutor {
                 switch (action) {
                     case PREVIOUS_ITEM -> fileExplorerState.previousItem();
                     case NEXT_ITEM -> fileExplorerState.nextItem();
+                    case MOVE_LEFT_FILE_NAME -> fileExplorerState.moveCursorLeft();
+                    case MOVE_RIGHT_FILE_NAME -> fileExplorerState.moveCursorRight();
                     default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
                 }
             }
@@ -153,6 +151,18 @@ public class CommandExecutor {
         @Override
         public Undoable copy() {
             return new EditorDeleteCharCommand(this);
+        }
+    }
+
+    public class FileNameDeleteCharCommand implements Command {
+
+        @Override
+        public boolean execute() {
+            if (action == Action.BACKSPACE_DELETE_FILE_NAME)
+                fileExplorerState.moveCursorLeft();
+            fileExplorerState.deleteFileNameCharOnCursor();
+
+            return true;
         }
     }
 
@@ -434,6 +444,8 @@ public class CommandExecutor {
                     return Action.INPUT_PRINTABLE_CHAR;
                 if (ch == CharCode.BACKSPACE)
                     return Action.BACKSPACE_DELETE;
+                if (ch == CharCode.DEL)
+                    return Action.DEL_DELETE;
                 if (ch == CharCode.CARRIAGE_RETURN)
                     return Action.NEW_ROW;
                 if (ch == CharCode.CANCEL)
@@ -442,8 +454,6 @@ public class CommandExecutor {
                     return Action.OPEN_FILE_EXPLORER;
                 if (ch == CharCode.DEVICE_CONTROL_3)
                     return Action.OPEN_DIR_EXPLORER;
-                if (ch == CharCode.DEL)
-                    return Action.DEL_DELETE;
                 if (ch == CharCode.RIGHT_ARROW)
                     return Action.MOVE_CURSOR_RIGHT;
                 if (ch == CharCode.LEFT_ARROW)
@@ -458,6 +468,14 @@ public class CommandExecutor {
             case FILE_EXPLORER -> {
                 if (ch >= CharCode.FIRST_PRINTABLE_CHAR && ch <= CharCode.LAST_PRINTABLE_CHAR)
                     return Action.INPUT_FILE_NAME;
+                if (ch == CharCode.BACKSPACE)
+                    return Action.BACKSPACE_DELETE_FILE_NAME;
+                if (ch == CharCode.DEL)
+                    return Action.DEL_DELETE_FILE_NAME;
+                if (ch == CharCode.RIGHT_ARROW)
+                    return Action.MOVE_RIGHT_FILE_NAME;
+                if (ch == CharCode.LEFT_ARROW)
+                    return Action.MOVE_LEFT_FILE_NAME;
                 if (ch == CharCode.CARRIAGE_RETURN)
                     return Action.OPEN_OR_SAVE_FILE;
                 if (ch == CharCode.UP_ARROW)

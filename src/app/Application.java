@@ -69,17 +69,22 @@ public class Application {
         var quitCommand = executor.new QuitCommand();
         var contextSwitchCommand = executor.new ContextSwitchCommand();
         var inputFileName = executor.new SaveFileExplorerInputFileNameCommand();
+        var deleteFileName = executor.new FileNameDeleteCharCommand();
 
         commands.put(Action.INPUT_PRINTABLE_CHAR, editorPrintableInputCommand);
         commands.put(Action.INPUT_FILE_NAME, inputFileName);
 
         commands.put(Action.BACKSPACE_DELETE, editorDeleteCharCommand);
         commands.put(Action.DEL_DELETE, editorDeleteCharCommand);
+        commands.put(Action.BACKSPACE_DELETE_FILE_NAME, deleteFileName);
+        commands.put(Action.DEL_DELETE_FILE_NAME, deleteFileName);
 
         commands.put(Action.MOVE_CURSOR_UP, arrowKeysCommand);
         commands.put(Action.MOVE_CURSOR_DOWN, arrowKeysCommand);
         commands.put(Action.MOVE_CURSOR_RIGHT, arrowKeysCommand);
         commands.put(Action.MOVE_CURSOR_LEFT, arrowKeysCommand);
+        commands.put(Action.MOVE_LEFT_FILE_NAME, arrowKeysCommand);
+        commands.put(Action.MOVE_RIGHT_FILE_NAME, arrowKeysCommand);
 
         commands.put(Action.NEW_ROW, editorNewRowCommand);
 

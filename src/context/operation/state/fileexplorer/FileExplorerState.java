@@ -29,7 +29,9 @@ public class FileExplorerState {
     private int itemIndex;
 
     private int inputColumnIndex;
-    private String fileName;
+    private int minInputColumnIndex;
+    private StringBuilder fileName;
+    private static final int MAX_FILE_NAME_SIZE = 256;
 
     private final Collection<String> storage = new ArrayList<>();
     private String[] explorerItems;
@@ -112,8 +114,19 @@ public class FileExplorerState {
     }
 
     public void inputFileName(int ch) {
-        fileName += (char) ch;
+        if (inputColumnIndex == MAX_FILE_NAME_SIZE)
+            return;
+
+        fileName.insert(inputColumnIndex - minInputColumnIndex, (char) ch);
         inputColumnIndex++;
+        continueExplorer();
+    }
+
+    public void deleteFileNameCharOnCursor() {
+        if (inputColumnIndex - minInputColumnIndex > fileName.length() - 1)
+            return;
+
+        fileName.deleteCharAt(inputColumnIndex - minInputColumnIndex);
         continueExplorer();
     }
 
@@ -128,6 +141,22 @@ public class FileExplorerState {
         if (itemIndex == storage.size() - 1) return;
 
         itemIndex++;
+        continueExplorer();
+    }
+
+    public void moveCursorLeft() {
+        if (inputColumnIndex == minInputColumnIndex)
+            return;
+
+        inputColumnIndex--;
+        continueExplorer();
+    }
+
+    public void moveCursorRight() {
+        if (inputColumnIndex - minInputColumnIndex == fileName.length())
+            return;
+
+        inputColumnIndex++;
         continueExplorer();
     }
 
@@ -171,7 +200,7 @@ public class FileExplorerState {
             type = Type.SAVE;
 
             var fileNameItem = "File name: %s";
-            fileName = "";
+            fileName = new StringBuilder();
             header = HeaderBuilder.builder()
                     .item("Save file")
                     .item("UP - previous item")
@@ -185,6 +214,7 @@ public class FileExplorerState {
             minItemIndex = header.getSize();
             outputString = SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_IN_DISPLAY + "%s" + SET_CURSOR_VISIBLE;
             inputColumnIndex = 11;
+            minInputColumnIndex = 11;
 
             explorerItems = getDirs();
         } else
