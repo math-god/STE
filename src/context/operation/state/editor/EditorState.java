@@ -38,7 +38,7 @@ public class EditorState {
 
     {
         header = HeaderBuilder.builder()
-                .item("<unnamed>")
+                .item(UNNAMED_STR)
                 .item(NOT_SAVED_STR)
                 .line()
                 .build();
@@ -166,7 +166,6 @@ public class EditorState {
 
     public String getStringRepresentation() {
         var result = new StringBuilder();
-        logger.info(String.valueOf(header.getSize()));
 
         for (var i = header.getSize(); i < storage.size(); i++) {
             result.append(storage.get(i));
