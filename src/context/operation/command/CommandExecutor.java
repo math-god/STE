@@ -126,6 +126,8 @@ public class CommandExecutor {
             }
 
             fileExplorerState.setUnsaved();
+            editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
+
             undoComplete = false;
 
             return true;
@@ -145,6 +147,8 @@ public class CommandExecutor {
             }
 
             fileExplorerState.setUnsaved();
+            editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
+
             undoComplete = true;
         }
 
@@ -192,6 +196,8 @@ public class CommandExecutor {
             editorState.setCursorColumnIndex(0);
 
             fileExplorerState.setUnsaved();
+            editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
+
             undoComplete = false;
             return true;
         }
@@ -205,6 +211,8 @@ public class CommandExecutor {
             editorState.deleteRow(rowIndex + 1);
 
             fileExplorerState.setUnsaved();
+            editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
+
             undoComplete = true;
         }
 
@@ -257,6 +265,8 @@ public class CommandExecutor {
             editorState.moveCursorRight();
 
             fileExplorerState.setUnsaved();
+            editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
+
             undoComplete = false;
             return true;
         }
@@ -273,6 +283,8 @@ public class CommandExecutor {
             editorState.setCursorColumnIndex(columnIndex);
 
             fileExplorerState.setUnsaved();
+            editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
+
             undoComplete = true;
         }
 
@@ -333,6 +345,7 @@ public class CommandExecutor {
                     if (fileExplorerState.getOpenedFilePath() != null) {
                         var editorContent = editorState.getStringRepresentation();
                         fileExplorerState.writeFile(editorContent);
+                        editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
                         break;
                     }
 
@@ -347,7 +360,7 @@ public class CommandExecutor {
                         fileContent = fileExplorerState.readFileOrGoToDir();
 
                         if (fileContent != null) {
-                            editorState.fillStorage(fileContent);
+                            editorState.fillStorage(fileContent, fileExplorerState.getFileName(), fileExplorerState.isSaved());
                             context = ContextType.EDITOR;
                         }
                     }
@@ -357,6 +370,7 @@ public class CommandExecutor {
                         var saved = fileExplorerState.writeFileOrGoToDir(editorContent);
                         if (saved) {
                             context = ContextType.EDITOR;
+                            editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
                             editorState.sendDataToTerminal();
                         }
                     }

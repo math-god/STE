@@ -43,14 +43,14 @@ public class Application {
     }
 
     private static void init() {
+        System.out.print(ERASE_SCREEN);
+        System.out.print(SET_CURSOR_AT_START);
+
         terminal = new WindowsTerminal();
         terminal.enableRawMode();
 
         var commands = initExecutor();
         inputReader = new InputReader(commands);
-
-        System.out.print(ERASE_SCREEN);
-        System.out.print(SET_CURSOR_AT_START);
     }
 
     private static CommandExecutor initExecutor() {

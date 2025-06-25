@@ -3,6 +3,11 @@ package common.utility;
 import java.util.List;
 
 public class CommonUtils {
+
+    public static boolean isEmpty(String str) {
+        return str == null || str.isEmpty();
+    }
+
     public static <T> T getElementOrNull(List<T> list, int index) {
         if (list.isEmpty()) return null;
         if (index < 0 || index > list.size() - 1) return null;

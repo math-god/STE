@@ -160,6 +160,11 @@ public class FileExplorerState {
         continueExplorer();
     }
 
+    public String getFileName() {
+        var res = fileName != null ? fileName : new StringBuilder();
+        return res.toString();
+    }
+
     public Type getCurrentExplorerType() {
         return type;
     }
