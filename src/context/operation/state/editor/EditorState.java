@@ -30,7 +30,10 @@ public class EditorState {
     private final String NOT_SAVED_STR = "not saved";
 
     private final String OUTPUT_STRING = SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START +
-            ERASE_IN_DISPLAY + "%s" + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE;
+            ERASE_SCREEN + "%s" + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE;
+
+    private final String RESET_CURSOR_OUTPUT_STRING = SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START + SAVE_CURSOR_POSITION +
+            ERASE_SCREEN + SAVE_SCREEN + "%s" + RESTORE_SCREEN + RESTORE_CURSOR_POSITION;
 
     private final Logger logger = FileLogger.getFileLogger(EditorState.class.getName(), "editor-state.txt");
 
@@ -51,7 +54,7 @@ public class EditorState {
                 .forEach(item -> storage.add(new StringBuilder(item + (char) CharCode.CARRIAGE_RETURN)));
         storage.add(new StringBuilder());
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
@@ -66,7 +69,7 @@ public class EditorState {
         }
         textSize++;
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void deleteChar(int rowIndex, int columnIndex) {
@@ -75,7 +78,7 @@ public class EditorState {
         row.deleteCharAt(columnIndex);
         textSize--;
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public int deleteCharAtCursorAndGetChar() {
@@ -86,7 +89,7 @@ public class EditorState {
         row.deleteCharAt(cursorColumnIndex);
         textSize--;
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         return ch;
     }
 
@@ -103,7 +106,7 @@ public class EditorState {
             storage.add(cursorRowIndex + 1, toRow);
         }
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         return storage.indexOf(toRow);
     }
 
@@ -112,12 +115,12 @@ public class EditorState {
         var secondRow = storage.get(secondRowIndex);
 
         firstRow.append(secondRow);
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void fillStorage(List<String> lines, String fileName, boolean savingState) {
@@ -139,8 +142,8 @@ public class EditorState {
                 .line()
                 .build();
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        OutputUtils.writeText(RESET_CURSOR_OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        OutputUtils.writeText(RESTORE_SCREEN, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void updateHeader(String fileName, boolean savingState) {
@@ -156,11 +159,11 @@ public class EditorState {
             storage.set(i, new StringBuilder(header.getHeaderItems()[i] + (char) CharCode.CARRIAGE_RETURN));
         }
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void sendDataToTerminal() {
-        OutputUtils.writeText(OUTPUT_STRING, getTextData());
+        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 

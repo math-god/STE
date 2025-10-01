@@ -20,16 +20,21 @@ public class Application {
     private static Terminal terminal;
 
     public final static Platform PLATFORM = getPlatform();
+    public static int width;
+    public static int height;
 
     public static void main(String[] args) {
         run();
     }
 
     private static void run() {
-        init();
-
         try {
+            init();
+
             while (true) {
+                width = terminal.getWindowSize().columns();
+                height = terminal.getWindowSize().rows();
+
                 var res = inputReader.read();
                 if (!res) break;
             }
@@ -37,9 +42,9 @@ public class Application {
             System.out.print(ERASE_SCREEN);
             System.out.print(SET_CURSOR_AT_START);
             System.out.print(ex.getMessage());
+        } finally {
+            exit();
         }
-
-        exit();
     }
 
     private static void init() {
@@ -48,6 +53,9 @@ public class Application {
 
         terminal = new WindowsTerminal();
         terminal.enableRawMode();
+
+        width = terminal.getWindowSize().columns();
+        height = terminal.getWindowSize().rows();
 
         var commands = initExecutor();
         inputReader = new InputReader(commands);

@@ -114,6 +114,9 @@ public class FileExplorerState {
     }
 
     public void inputFileName(int ch) {
+        if (type == Type.OPEN)
+            return;
+
         if (inputColumnIndex == MAX_FILE_NAME_SIZE)
             return;
 
