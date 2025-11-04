@@ -10,4 +10,7 @@ public interface Terminal {
 
     record WindowSize(int rows, int columns) {}
 
+    CursorPosition getCursorPosition();
+
+    record CursorPosition(int x, int y) {}
 }

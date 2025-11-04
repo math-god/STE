@@ -4,7 +4,7 @@ import common.Action;
 import common.CharCode;
 import common.terminal.Platform;
 import context.operation.state.HeaderBuilder;
-import context.operation.state.OutputUtils;
+import context.operation.state.TerminalWriter;
 import log.FileLogger;
 
 import java.io.*;
@@ -40,6 +40,12 @@ public class FileExplorerState {
     private String outputString;
 
     private final Logger logger = FileLogger.getFileLogger(FileExplorerState.class.getName(), "file-explorer-log.txt");
+
+    private final TerminalWriter terminalWriter;
+
+    public FileExplorerState(TerminalWriter terminalWriter) {
+        this.terminalWriter = terminalWriter;
+    }
 
     public void startExplorer(Action action) {
         initFields(action);
@@ -263,12 +269,12 @@ public class FileExplorerState {
 
     private void writeTerminal() {
         if (type == Type.OPEN) {
-            OutputUtils.writeText(outputString, getTextData());
+            terminalWriter.writeText(outputString, getTextData());
         } else if (type == Type.SAVE) {
-            OutputUtils.writeText(outputString, getTextData());
+            terminalWriter.writeText(outputString, getTextData());
 
             var fileNameItemIndex = header.getSize() - 1;
-            OutputUtils.writeCursor(fileNameItemIndex, inputColumnIndex);
+            terminalWriter.writeCursor(fileNameItemIndex, inputColumnIndex);
         }
     }
 

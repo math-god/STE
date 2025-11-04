@@ -67,6 +67,15 @@ public class WindowsTerminal implements Terminal {
         return new WindowSize(info.windowHeight(), info.windowWidth());
     }
 
+    @Override
+    public CursorPosition getCursorPosition() {
+        final Kernel32.CONSOLE_SCREEN_BUFFER_INFO info = new Kernel32.CONSOLE_SCREEN_BUFFER_INFO();
+        final Kernel32 instance = Kernel32.INSTANCE;
+        final Pointer handle = Kernel32.INSTANCE.GetStdHandle(Kernel32.STD_OUTPUT_HANDLE);
+        instance.GetConsoleScreenBufferInfo(handle, info);
+        return new CursorPosition(info.cursorPositionX(), info.cursorPositionY());
+    }
+
     interface Kernel32 extends StdCallLibrary {
 
         Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
@@ -160,6 +169,14 @@ public class WindowsTerminal implements Terminal {
 
             public int windowHeight() {
                 return this.srWindow.height() + 1;
+            }
+
+            public int cursorPositionX() {
+                return this.dwCursorPosition.X;
+            }
+
+            public int cursorPositionY() {
+                return this.dwCursorPosition.Y;
             }
         }
 

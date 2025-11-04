@@ -3,7 +3,7 @@ package context.operation.state.dialog;
 import common.CharCode;
 import common.terminal.Platform;
 import context.operation.state.HeaderBuilder;
-import context.operation.state.OutputUtils;
+import context.operation.state.TerminalWriter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +21,12 @@ public class DialogState {
     private String[] dialogItems;
     private DialogType type;
     private final String OUTPUT_STRING = SET_CURSOR_AT_START + SET_CURSOR_INVISIBLE + ERASE_IN_DISPLAY + "%s";
+
+    private final TerminalWriter terminalWriter;
+
+    public DialogState(TerminalWriter terminalWriter) {
+        this.terminalWriter = terminalWriter;
+    }
 
     public void startDialog(DialogType type) {
         var header = HeaderBuilder.builder()
@@ -78,7 +84,7 @@ public class DialogState {
                 storage.add(String.format(dialogItems[i]) + (char) CharCode.CARRIAGE_RETURN);
         }
 
-        OutputUtils.writeText(OUTPUT_STRING, getData());
+        terminalWriter.writeText(OUTPUT_STRING, getData());
     }
 
     private String getData() {

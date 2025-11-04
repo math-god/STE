@@ -2,12 +2,9 @@ package context.operation.state.editor;
 
 import common.CharCode;
 import common.terminal.Platform;
-import common.utility.CommonUtils;
-import context.operation.state.HeaderBuilder;
-import context.operation.state.OutputUtils;
+import context.operation.state.TerminalWriter;
 import log.FileLogger;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -20,14 +17,9 @@ public class EditorState {
     private int cursorColumnIndex;
     private int cursorColumnEdgeIndex;
 
-    private final int minimalRowIndex;
+   /* private int offsetFromTop;*/
 
     private LinkedList<StringBuilder> storage;
-    private HeaderBuilder.Header header;
-
-    private final String UNNAMED_STR = "<unnamed>";
-    private final String SAVED_STR = "saved";
-    private final String NOT_SAVED_STR = "not saved";
 
     private final String OUTPUT_STRING = SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START +
             ERASE_SCREEN + "%s" + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE;
@@ -39,23 +31,16 @@ public class EditorState {
 
     private int textSize;
 
-    {
-        header = HeaderBuilder.builder()
-                .item(UNNAMED_STR)
-                .item(NOT_SAVED_STR)
-                .line()
-                .build();
+    private final TerminalWriter terminalWriter;
 
-        cursorRowIndex = header.getSize();
-        minimalRowIndex = cursorRowIndex;
+    public EditorState(TerminalWriter terminalWriter) {
+        this.terminalWriter = terminalWriter;
 
         storage = new LinkedList<>();
-        Arrays.stream(header.getHeaderItems())
-                .forEach(item -> storage.add(new StringBuilder(item + (char) CharCode.CARRIAGE_RETURN)));
         storage.add(new StringBuilder());
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void addChar(int ch) {
@@ -69,7 +54,7 @@ public class EditorState {
         }
         textSize++;
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void deleteChar(int rowIndex, int columnIndex) {
@@ -78,7 +63,7 @@ public class EditorState {
         row.deleteCharAt(columnIndex);
         textSize--;
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public int deleteCharAtCursorAndGetChar() {
@@ -89,7 +74,7 @@ public class EditorState {
         row.deleteCharAt(cursorColumnIndex);
         textSize--;
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         return ch;
     }
 
@@ -106,7 +91,7 @@ public class EditorState {
             storage.add(cursorRowIndex + 1, toRow);
         }
 
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         return storage.indexOf(toRow);
     }
 
@@ -115,12 +100,12 @@ public class EditorState {
         var secondRow = storage.get(secondRowIndex);
 
         firstRow.append(secondRow);
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void fillStorage(List<String> lines, String fileName, boolean savingState) {
@@ -132,49 +117,27 @@ public class EditorState {
             list.add(new StringBuilder(lines.get(lines.size() - 1)));
             storage = list;
         }
-        cursorRowIndex = minimalRowIndex;
+        cursorRowIndex = 0;
         cursorColumnIndex = 0;
         cursorColumnEdgeIndex = 0;
 
-        header = HeaderBuilder.builder()
-                .item(fileName)
-                .item(savingState ? SAVED_STR : NOT_SAVED_STR)
-                .line()
-                .build();
+        terminalWriter.saveFileStatus(fileName, savingState);
 
-        OutputUtils.writeText(RESET_CURSOR_OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
-        OutputUtils.writeText(RESTORE_SCREEN, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(RESET_CURSOR_OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(RESTORE_SCREEN, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void updateHeader(String fileName, boolean savingState) {
-        fileName = CommonUtils.isEmpty(fileName) ? UNNAMED_STR : fileName;
-
-        header = HeaderBuilder.builder()
-                .item(fileName)
-                .item(savingState ? SAVED_STR : NOT_SAVED_STR)
-                .line()
-                .build();
-
-        for (var i = 0; i < header.getSize(); i++) {
-            storage.set(i, new StringBuilder(header.getHeaderItems()[i] + (char) CharCode.CARRIAGE_RETURN));
-        }
-
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.saveFileStatus(fileName, savingState);
     }
 
     public void sendDataToTerminal() {
-        OutputUtils.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public String getStringRepresentation() {
-        var result = new StringBuilder();
-
-        for (var i = header.getSize(); i < storage.size(); i++) {
-            result.append(storage.get(i));
-        }
-
-        return result.toString();
+        return storage.toString();
     }
 
     public void moveCursorRight() {
@@ -194,11 +157,11 @@ public class EditorState {
             cursorColumnEdgeIndex++;
         }
 
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void moveCursorLeft() {
-        if (cursorColumnIndex == 0 && cursorRowIndex == minimalRowIndex)
+        if (cursorColumnIndex == 0 && cursorRowIndex == 0)
             return;
 
         if (cursorColumnIndex == 0 && cursorRowIndex > 0) {
@@ -210,11 +173,11 @@ public class EditorState {
             cursorColumnEdgeIndex--;
         }
 
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void moveCursorUp() {
-        if (cursorRowIndex == minimalRowIndex)
+        if (cursorRowIndex == 0)
             return;
 
         var previousRowSize = storage.get(cursorRowIndex - 1).length();
@@ -222,7 +185,7 @@ public class EditorState {
         cursorColumnIndex = Math.min(previousRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex--;
 
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void moveCursorDown() {
@@ -234,7 +197,7 @@ public class EditorState {
         cursorColumnIndex = Math.min(nextRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex++;
 
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public Integer getCursorRowIndex() {
@@ -249,7 +212,7 @@ public class EditorState {
         if (row < 0) return;
         this.cursorRowIndex = row;
 
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public void setCursorColumnIndex(Integer column) {
@@ -257,7 +220,7 @@ public class EditorState {
         this.cursorColumnIndex = column;
         this.cursorColumnEdgeIndex = column;
 
-        OutputUtils.writeCursor(cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
     }
 
     public int getTextSize() {
@@ -278,4 +241,19 @@ public class EditorState {
 
         return result;
     }
+
+/*    private String getSizedTextData() {
+        var stringBuilder = new StringBuilder();
+        storage.subList(offsetFromTop - 1, cursorRowIndex + 1).forEach(stringBuilder::append);
+
+        var result = stringBuilder.toString();
+        if (PLATFORM == Platform.WINDOWS)
+            result = result.replace("\r", PLATFORM.NEXT_ROW_CHAR);
+
+        return result;
+    }
+
+    private void log() {
+        logger.info("cursorRowIndex: " + cursorRowIndex + ", cursorColumnIndex: " + cursorColumnIndex + ", offsetFromTop: " + offsetFromTop);
+    }*/
 }

@@ -26,7 +26,7 @@ public class HeaderBuilder {
     }
 
     public HeaderBuilder line() {
-        temp.add("-------------------------");
+        temp.add("-------------------------\n");
 
         return instance;
     }
@@ -58,6 +58,11 @@ public class HeaderBuilder {
 
         public int getSize() {
             return size;
+        }
+
+        @Override
+        public String toString() {
+            return String.join("\n", headerItems);
         }
     }
 }

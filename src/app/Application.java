@@ -5,6 +5,7 @@ import common.terminal.Platform;
 import common.terminal.Terminal;
 import common.terminal.WindowsTerminal;
 import context.operation.command.CommandExecutor;
+import context.operation.state.TerminalWriter;
 import context.operation.state.dialog.DialogState;
 import context.operation.state.editor.EditorState;
 import context.operation.state.fileexplorer.FileExplorerState;
@@ -23,6 +24,9 @@ public class Application {
     public static int width;
     public static int height;
 
+    public static int positionX;
+    public static int positionY;
+
     public static void main(String[] args) {
         run();
     }
@@ -34,6 +38,8 @@ public class Application {
             while (true) {
                 width = terminal.getWindowSize().columns();
                 height = terminal.getWindowSize().rows();
+                positionX = terminal.getCursorPosition().x();
+                positionY = terminal.getCursorPosition().y();
 
                 var res = inputReader.read();
                 if (!res) break;
@@ -62,10 +68,12 @@ public class Application {
     }
 
     private static CommandExecutor initExecutor() {
+        var writer = new TerminalWriter();
+
         var commands = new HashMap<Action, CommandExecutor.Command>();
-        var editorState = new EditorState();
-        var fileExplorerState = new FileExplorerState();
-        var dialogState = new DialogState();
+        var editorState = new EditorState(writer);
+        var fileExplorerState = new FileExplorerState(writer);
+        var dialogState = new DialogState(writer);
         var executor = new CommandExecutor(editorState, fileExplorerState, dialogState, commands);
 
         var editorPrintableInputCommand = executor.new EditorPrintableInputCommand();
