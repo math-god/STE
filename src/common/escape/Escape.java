@@ -15,4 +15,5 @@ public class Escape {
     public final static String SAVE_SCREEN = "\033[?47h";
     public final static String INVERSE_COLOR = "\033[7m";
     public final static String RESET_COLOR = "\033[0m";
+    public final static String SET_FOREGROUND = "\033[38;5;%dm";
 }

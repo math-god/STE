@@ -60,11 +60,15 @@ public class TerminalWriter {
 
     private String getTopStatus() {
         var fileName = getFileNameSafely();
-        var status = getStausOfFile();
+        var fileStr = fileName + " ".repeat(Math.max(0, Application.width) - fileName.length());
+        var statusStr = isSaved ?
+                String.format(SET_FOREGROUND, 28) + SAVED_STR + RESET_COLOR + " ".repeat(Math.max(0, Application.width) - SAVED_STR.length()) :
+                String.format(SET_FOREGROUND, 124) + NOT_SAVED_STR + RESET_COLOR + " ".repeat(Math.max(0, Application.width) - NOT_SAVED_STR.length());
+
         return String.format(SET_CURSOR_AT_ROW_COLUMN, 0, 0) +
                 HeaderBuilder.builder()
-                        .item(fileName + " ".repeat(Math.max(0, Application.width) - fileName.length()))
-                        .item(status + " ".repeat(Math.max(0, Application.width) - status.length()))
+                        .item(fileStr)
+                        .item(statusStr)
                         .line()
                         .build()
                         .toString();
@@ -76,13 +80,5 @@ public class TerminalWriter {
         }
 
         return fileName;
-    }
-
-    private String getStausOfFile() {
-        if (isSaved) {
-            return SAVED_STR;
-        }
-
-        return NOT_SAVED_STR;
     }
 }
