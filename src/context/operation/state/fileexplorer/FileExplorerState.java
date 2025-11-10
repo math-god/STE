@@ -170,8 +170,7 @@ public class FileExplorerState {
     }
 
     public String getFileName() {
-        var res = fileName != null ? fileName : new StringBuilder();
-        return res.toString();
+        return explorerItems[itemIndex];
     }
 
     public Type getCurrentExplorerType() {
