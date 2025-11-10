@@ -1,5 +1,7 @@
 package context.operation.state;
 
+import app.Application;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -26,7 +28,7 @@ public class HeaderBuilder {
     }
 
     public HeaderBuilder line() {
-        temp.add("-------------------------\n");
+        temp.add("-".repeat(Application.width) + "\n");
 
         return instance;
     }

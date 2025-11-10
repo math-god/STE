@@ -1,5 +1,6 @@
 package context.operation.state.editor;
 
+import app.Application;
 import common.CharCode;
 import common.terminal.Platform;
 import context.operation.state.TerminalWriter;
@@ -17,15 +18,12 @@ public class EditorState {
     private int cursorColumnIndex;
     private int cursorColumnEdgeIndex;
 
-   /* private int offsetFromTop;*/
+    private int offsetFromTop;
 
     private LinkedList<StringBuilder> storage;
 
     private final String OUTPUT_STRING = SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START +
             ERASE_SCREEN + "%s" + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE;
-
-    private final String RESET_CURSOR_OUTPUT_STRING = SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START + SAVE_CURSOR_POSITION +
-            ERASE_SCREEN + SAVE_SCREEN + "%s" + RESTORE_SCREEN + RESTORE_CURSOR_POSITION;
 
     private final Logger logger = FileLogger.getFileLogger(EditorState.class.getName(), "editor-state.txt");
 
@@ -39,8 +37,14 @@ public class EditorState {
         storage = new LinkedList<>();
         storage.add(new StringBuilder());
 
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
+        terminalWriter.writeEditorText(OUTPUT_STRING, getTextData());
         terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
+    }
+
+    public void writeInTerminal() {
+        logger.info(getTextData());
+        terminalWriter.writeEditorText(OUTPUT_STRING, getTextData());
+        terminalWriter.writeCursor(cursorRowIndex, offsetFromTop, cursorColumnIndex);
     }
 
     public void addChar(int ch) {
@@ -53,8 +57,6 @@ public class EditorState {
             row.insert(cursorColumnIndex, (char) ch);
         }
         textSize++;
-
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void deleteChar(int rowIndex, int columnIndex) {
@@ -62,8 +64,6 @@ public class EditorState {
 
         row.deleteCharAt(columnIndex);
         textSize--;
-
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public int deleteCharAtCursorAndGetChar() {
@@ -74,7 +74,6 @@ public class EditorState {
         row.deleteCharAt(cursorColumnIndex);
         textSize--;
 
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         return ch;
     }
 
@@ -91,7 +90,6 @@ public class EditorState {
             storage.add(cursorRowIndex + 1, toRow);
         }
 
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
         return storage.indexOf(toRow);
     }
 
@@ -100,12 +98,10 @@ public class EditorState {
         var secondRow = storage.get(secondRowIndex);
 
         firstRow.append(secondRow);
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void deleteRow(int rowIndex) {
         storage.remove(rowIndex);
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void fillStorage(List<String> lines, String fileName, boolean savingState) {
@@ -114,38 +110,32 @@ public class EditorState {
             for (var i = 0; i < lines.size() - 1; i++) {
                 list.add(new StringBuilder(lines.get(i) + (char) CharCode.CARRIAGE_RETURN));
             }
-            list.add(new StringBuilder(lines.get(lines.size() - 1)));
+            list.add(new StringBuilder(lines.getLast()));
             storage = list;
         }
         cursorRowIndex = 0;
         cursorColumnIndex = 0;
         cursorColumnEdgeIndex = 0;
+        offsetFromTop = 0;
 
         terminalWriter.saveFileStatus(fileName, savingState);
-
-        terminalWriter.writeText(RESET_CURSOR_OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
-        terminalWriter.writeText(RESTORE_SCREEN, getTextData(), cursorRowIndex, cursorColumnIndex);
     }
 
     public void updateHeader(String fileName, boolean savingState) {
         terminalWriter.saveFileStatus(fileName, savingState);
     }
 
-    public void sendDataToTerminal() {
-        terminalWriter.writeText(OUTPUT_STRING, getTextData(), cursorRowIndex, cursorColumnIndex);
-        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
-    }
-
     public String getStringRepresentation() {
         return storage.toString();
     }
 
-    public void moveCursorRight() {
+    public boolean moveCursorRight() {
         var currentRow = storage.get(cursorRowIndex);
         var currentRowMaxColumnIndex = currentRow.length();
         var maxRowIndex = storage.size() - 1;
 
-        if (cursorColumnIndex == currentRowMaxColumnIndex && cursorRowIndex == maxRowIndex) return;
+        if (cursorColumnIndex == currentRowMaxColumnIndex && cursorRowIndex == maxRowIndex)
+            return false;
 
         if (currentRow.charAt(cursorColumnIndex) == CharCode.CARRIAGE_RETURN ||
                 cursorColumnIndex == currentRowMaxColumnIndex && cursorRowIndex < maxRowIndex) {
@@ -157,12 +147,16 @@ public class EditorState {
             cursorColumnEdgeIndex++;
         }
 
-        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
+        if (cursorRowIndex > getWorkSpaceHeight()) {
+            offsetFromTop++;
+        }
+
+        return true;
     }
 
-    public void moveCursorLeft() {
+    public boolean moveCursorLeft() {
         if (cursorColumnIndex == 0 && cursorRowIndex == 0)
-            return;
+            return false;
 
         if (cursorColumnIndex == 0 && cursorRowIndex > 0) {
             cursorRowIndex--;
@@ -173,31 +167,43 @@ public class EditorState {
             cursorColumnEdgeIndex--;
         }
 
-        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
+        if (cursorRowIndex < offsetFromTop) {
+            offsetFromTop--;
+        }
+
+        return true;
     }
 
-    public void moveCursorUp() {
+    public boolean moveCursorUp() {
         if (cursorRowIndex == 0)
-            return;
+            return false;
 
         var previousRowSize = storage.get(cursorRowIndex - 1).length();
 
         cursorColumnIndex = Math.min(previousRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex--;
 
-        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
+        if (cursorRowIndex < offsetFromTop) {
+            offsetFromTop--;
+        }
+
+        return true;
     }
 
-    public void moveCursorDown() {
+    public boolean moveCursorDown() {
         if (cursorRowIndex == storage.size() - 1)
-            return;
+            return false;
 
         var nextRowSize = storage.get(cursorRowIndex + 1).length();
 
         cursorColumnIndex = Math.min(nextRowSize - 1, cursorColumnEdgeIndex);
         cursorRowIndex++;
 
-        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
+        if (cursorRowIndex > getWorkSpaceHeight()) {
+            offsetFromTop++;
+        }
+
+        return true;
     }
 
     public Integer getCursorRowIndex() {
@@ -208,43 +214,25 @@ public class EditorState {
         return cursorColumnIndex;
     }
 
-    public void setCursorRowIndex(Integer row) {
-        if (row < 0) return;
+    public void setCursorPosition(int row, int column) {
+        if (row < 0 || row > storage.size() - 1) throw new IllegalArgumentException();
+        if (column < 0) throw new IllegalArgumentException();
+
         this.cursorRowIndex = row;
-
-        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
-    }
-
-    public void setCursorColumnIndex(Integer column) {
-        if (column < 0) return;
         this.cursorColumnIndex = column;
         this.cursorColumnEdgeIndex = column;
 
-        terminalWriter.writeCursor(cursorRowIndex, cursorColumnIndex);
-    }
-
-    public int getTextSize() {
-        return textSize;
-    }
-
-    public int getRowsCount() {
-        return storage.size();
+        if (cursorRowIndex < offsetFromTop) {
+            offsetFromTop--;
+        }
+        if (cursorRowIndex > getWorkSpaceHeight()) {
+            offsetFromTop++;
+        }
     }
 
     private String getTextData() {
         var stringBuilder = new StringBuilder();
-        storage.forEach(stringBuilder::append);
-
-        var result = stringBuilder.toString();
-        if (PLATFORM == Platform.WINDOWS)
-            result = result.replace("\r", PLATFORM.NEXT_ROW_CHAR);
-
-        return result;
-    }
-
-/*    private String getSizedTextData() {
-        var stringBuilder = new StringBuilder();
-        storage.subList(offsetFromTop - 1, cursorRowIndex + 1).forEach(stringBuilder::append);
+        storage.subList(offsetFromTop, Math.min(getWorkSpaceHeight(), storage.size()) + offsetFromTop).forEach(stringBuilder::append);
 
         var result = stringBuilder.toString();
         if (PLATFORM == Platform.WINDOWS)
@@ -254,6 +242,17 @@ public class EditorState {
     }
 
     private void log() {
-        logger.info("cursorRowIndex: " + cursorRowIndex + ", cursorColumnIndex: " + cursorColumnIndex + ", offsetFromTop: " + offsetFromTop);
-    }*/
+        logger.info("cursorRowIndex: " + cursorRowIndex +
+                ", cursorColumnIndex: " + cursorColumnIndex +
+                ", offsetFromTop: " + offsetFromTop +
+                ", height:" + Application.height +
+                ", storage:" + storage.size());
+    }
+
+    private int getWorkSpaceHeight() {
+        return Application.height
+                - 3 // top status
+                - 1 // bottom status
+                - 1; // alignment with index
+    }
 }

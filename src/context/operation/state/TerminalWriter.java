@@ -16,15 +16,11 @@ public class TerminalWriter {
 
     private final String BOTTOM_STATUS = "row: %s, column: %s";
 
-    public void writeText(String format,
-                          String text,
-                          int rowIndex,
-                          int columnIndex) {
+    public void writeEditorText(String format,
+                                String text) {
         var windowContent = new StringBuilder();
-        windowContent
-                .append(getTopStatus())
-                .append(text)
-                .append(getBottomStatus(rowIndex, columnIndex));
+        windowContent.append("\n".repeat(3))
+                .append(text);
 
         var formatted = String.format(format, windowContent);
         System.out.print(formatted);
@@ -36,7 +32,17 @@ public class TerminalWriter {
     }
 
     public void writeCursor(int rowIndex, int columnIndex) {
-        System.out.printf(getBottomStatus(rowIndex, columnIndex) + SET_CURSOR_AT_ROW_COLUMN, rowIndex + 3 + 1, columnIndex + 1);
+        System.out.printf(getTopStatus() +
+                getBottomStatus(rowIndex + 1, columnIndex + 1) +
+                SET_CURSOR_AT_ROW_COLUMN, rowIndex + 3 + 1, columnIndex + 1
+        );
+    }
+
+    public void writeCursor(int rowIndex, int offset, int columnIndex) {
+        System.out.printf(getTopStatus() +
+                getBottomStatus(rowIndex + 1, columnIndex + 1) +
+                SET_CURSOR_AT_ROW_COLUMN, rowIndex - offset + 3 + 1, columnIndex + 1
+        );
     }
 
     public void saveFileStatus(String fileName, boolean isSaved) {
@@ -53,12 +59,15 @@ public class TerminalWriter {
     }
 
     private String getTopStatus() {
-        return HeaderBuilder.builder()
-                .item(getFileNameSafely())
-                .item(getStausOfFile())
-                .line()
-                .build()
-                .toString();
+        var fileName = getFileNameSafely();
+        var status = getStausOfFile();
+        return String.format(SET_CURSOR_AT_ROW_COLUMN, 0, 0) +
+                HeaderBuilder.builder()
+                        .item(fileName + " ".repeat(Math.max(0, Application.width) - fileName.length()))
+                        .item(status + " ".repeat(Math.max(0, Application.width) - status.length()))
+                        .line()
+                        .build()
+                        .toString();
     }
 
     private String getFileNameSafely() {

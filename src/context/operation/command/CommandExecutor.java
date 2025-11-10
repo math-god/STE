@@ -66,13 +66,17 @@ public class CommandExecutor {
         @Override
         public boolean execute() {
             if (context == ContextType.EDITOR) {
+                boolean changed;
                 switch (action) {
-                    case MOVE_CURSOR_UP -> editorState.moveCursorUp();
-                    case MOVE_CURSOR_DOWN -> editorState.moveCursorDown();
-                    case MOVE_CURSOR_LEFT -> editorState.moveCursorLeft();
-                    case MOVE_CURSOR_RIGHT -> editorState.moveCursorRight();
+                    case MOVE_CURSOR_UP -> changed = editorState.moveCursorUp();
+                    case MOVE_CURSOR_DOWN -> changed = editorState.moveCursorDown();
+                    case MOVE_CURSOR_LEFT -> changed = editorState.moveCursorLeft();
+                    case MOVE_CURSOR_RIGHT -> changed = editorState.moveCursorRight();
                     default -> throw new IllegalArgumentException("Unknown cursor action: " + action);
                 }
+
+                if (changed)
+                    editorState.writeInTerminal();
             }
 
             if (context == ContextType.FILE_EXPLORER) {
@@ -125,6 +129,8 @@ public class CommandExecutor {
                 editorState.deleteRow(secondRowIndex);
             }
 
+            editorState.writeInTerminal();
+
             fileExplorerState.setUnsaved();
             editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
 
@@ -145,6 +151,7 @@ public class CommandExecutor {
             if (action == Action.BACKSPACE_DELETE) {
                 editorState.moveCursorRight();
             }
+            editorState.writeInTerminal();
 
             fileExplorerState.setUnsaved();
             editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
@@ -192,8 +199,9 @@ public class CommandExecutor {
             rowIndex = editorState.getCursorRowIndex();
             columnIndex = editorState.getCursorColumnIndex();
 
-            editorState.setCursorRowIndex(rowIndex + 1);
-            editorState.setCursorColumnIndex(0);
+            editorState.setCursorPosition(rowIndex + 1, 0);
+
+            editorState.writeInTerminal();
 
             fileExplorerState.setUnsaved();
             editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
@@ -204,11 +212,12 @@ public class CommandExecutor {
 
         @Override
         public void undo() {
-            editorState.setCursorRowIndex(rowIndex);
-            editorState.setCursorColumnIndex(columnIndex);
+            editorState.setCursorPosition(rowIndex, columnIndex);
 
             editorState.deleteChar(rowIndex, columnIndex);
             editorState.deleteRow(rowIndex + 1);
+
+            editorState.writeInTerminal();
 
             fileExplorerState.setUnsaved();
             editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
@@ -263,6 +272,7 @@ public class CommandExecutor {
             columnIndex = editorState.getCursorColumnIndex();
 
             editorState.moveCursorRight();
+            editorState.writeInTerminal();
 
             fileExplorerState.setUnsaved();
             editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
@@ -279,8 +289,9 @@ public class CommandExecutor {
         @Override
         public void undo() {
             editorState.deleteChar(rowIndex, columnIndex);
-            editorState.setCursorRowIndex(rowIndex);
-            editorState.setCursorColumnIndex(columnIndex);
+            editorState.setCursorPosition(rowIndex, columnIndex);
+
+            editorState.writeInTerminal();
 
             fileExplorerState.setUnsaved();
             editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
@@ -361,6 +372,7 @@ public class CommandExecutor {
 
                         if (fileContent != null) {
                             editorState.fillStorage(fileContent, fileExplorerState.getFileName(), fileExplorerState.isSaved());
+                            editorState.writeInTerminal();
                             context = ContextType.EDITOR;
                         }
                     }
@@ -371,7 +383,7 @@ public class CommandExecutor {
                         if (saved) {
                             context = ContextType.EDITOR;
                             editorState.updateHeader(fileExplorerState.getFileName(), fileExplorerState.isSaved());
-                            editorState.sendDataToTerminal();
+                            editorState.writeInTerminal();
                         }
                     }
                 }
