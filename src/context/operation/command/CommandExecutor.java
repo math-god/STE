@@ -118,7 +118,9 @@ public class CommandExecutor {
         @Override
         public boolean execute() {
             if (action == Action.BACKSPACE_DELETE) {
-                editorState.moveCursorLeft();
+                var changed = editorState.moveCursorLeft();
+                if (!changed)
+                    return true;
             }
 
             ch = editorState.deleteCharAtCursorAndGetChar();

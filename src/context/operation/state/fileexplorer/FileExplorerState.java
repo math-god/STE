@@ -170,7 +170,11 @@ public class FileExplorerState {
     }
 
     public String getFileName() {
-        return explorerItems[itemIndex];
+        if (explorerItems != null) {
+            return explorerItems[itemIndex];
+        }
+
+        return null;
     }
 
     public Type getCurrentExplorerType() {
