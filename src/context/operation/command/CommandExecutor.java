@@ -389,7 +389,10 @@ public class CommandExecutor {
                         }
                     }
                 }
-
+                case OPEN_HELP_PAGE -> {
+                    context = ContextType.DIALOG;
+                    dialogState.startDialog(DialogState.DialogType.HELP_PAGE);
+                }
                 case DIALOG_ACTIONS -> {
                     var dialogType = dialogState.getType();
                     switch (dialogType) {
@@ -413,6 +416,11 @@ public class CommandExecutor {
                                 context = ContextType.FILE_EXPLORER;
                                 fileExplorerState.startExplorer(Action.OPEN_FILE_EXPLORER);
                             }
+                        }
+                        case HELP_PAGE -> {
+                            dialogState.finishDialog();
+                            context = ContextType.EDITOR;
+                            editorState.writeInTerminal();
                         }
                     }
                 }
@@ -470,7 +478,7 @@ public class CommandExecutor {
             case EDITOR -> {
                 if (ch >= CharCode.FIRST_PRINTABLE_CHAR && ch <= CharCode.LAST_PRINTABLE_CHAR)
                     return Action.INPUT_PRINTABLE_CHAR;
-                if (ch == CharCode.BACKSPACE)
+                if (ch == CharCode.DEL_WITH_LEFT_OFFSET)
                     return Action.BACKSPACE_DELETE;
                 if (ch == CharCode.DEL)
                     return Action.DEL_DELETE;
@@ -492,11 +500,13 @@ public class CommandExecutor {
                     return Action.MOVE_CURSOR_DOWN;
                 if (ch == CharCode.CTRL_Z)
                     return Action.UNDO;
+                if (ch == CharCode.BACKSPACE)
+                    return Action.OPEN_HELP_PAGE;
             }
             case FILE_EXPLORER -> {
                 if (ch >= CharCode.FIRST_PRINTABLE_CHAR && ch <= CharCode.LAST_PRINTABLE_CHAR)
                     return Action.INPUT_FILE_NAME;
-                if (ch == CharCode.BACKSPACE)
+                if (ch == CharCode.DEL_WITH_LEFT_OFFSET)
                     return Action.BACKSPACE_DELETE_FILE_NAME;
                 if (ch == CharCode.DEL)
                     return Action.DEL_DELETE_FILE_NAME;

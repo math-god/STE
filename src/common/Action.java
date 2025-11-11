@@ -26,6 +26,7 @@ public enum Action {
     NEXT_ITEM,
     PREVIOUS_ITEM,
     DIALOG_ACTIONS,
+    OPEN_HELP_PAGE,
 
     NONE
 }

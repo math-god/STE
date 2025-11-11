@@ -101,6 +101,7 @@ public class DialogState {
     public enum DialogAnswer {
         YES("Yes"),
         NO("No"),
+        EXIT(String.format(SET_FOREGROUND, 27) + "Press Enter to exit" + RESET_COLOR)
 
         ;
 
@@ -109,17 +110,17 @@ public class DialogState {
         DialogAnswer(String answer) {
             this.answer = answer;
         }
-
-        static DialogAnswer[] getAnswers() {
-            return Arrays.stream(DialogAnswer.values())
-                    .toArray(DialogAnswer[]::new);
-        }
     }
 
     public enum DialogType {
-        SAVE_BEFORE_OPEN("Do you want to save current file before opening?", DialogAnswer.getAnswers()),
-
-        ;
+        SAVE_BEFORE_OPEN("Do you want to save current file before opening?", new DialogAnswer[]{DialogAnswer.YES, DialogAnswer.NO}),
+        HELP_PAGE("""
+                Ctrl + Q: exit
+                Ctrl + Z: undo
+                Ctrl + X: do
+                Ctrl + O: open file
+                Ctrl + S: save file
+                """, new DialogAnswer[]{DialogAnswer.EXIT});
 
         final String question;
         final DialogAnswer[] answers;

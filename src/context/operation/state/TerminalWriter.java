@@ -10,11 +10,12 @@ public class TerminalWriter {
     private String fileName;
     private boolean isSaved;
 
-    private final String UNNAMED_STR = "<unnamed>";
-    private final String SAVED_STR = "saved";
-    private final String NOT_SAVED_STR = "not saved";
+    private final static String UNNAMED_STR = "<unnamed>";
+    private final static String SAVED_STR = "saved";
+    private final static String NOT_SAVED_STR = "not saved";
 
-    private final String BOTTOM_STATUS = "row: %s, column: %s";
+    private final static String BOTTOM_STATUS = "row: %s, column: %s";
+    private final static String HELP_STR = "Ctrl + H: help";
 
     public void writeEditorText(String format,
                                 String text) {
@@ -54,7 +55,9 @@ public class TerminalWriter {
         return String.format(SET_CURSOR_AT_ROW_COLUMN, Application.height, 0) +
                 INVERSE_COLOR +
                 String.format(BOTTOM_STATUS, rowIndex, columnIndex) +
-                " ".repeat(Math.max(0, Application.width) - BOTTOM_STATUS.length()) +
+                " ".repeat(Math.max(0, Application.width) - (BOTTOM_STATUS.length() + HELP_STR.length() + 10)) +
+                HELP_STR +
+                " ".repeat(10) +
                 RESET_COLOR;
     }
 
