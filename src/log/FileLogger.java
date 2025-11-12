@@ -1,3 +1,4 @@
+/*
 package log;
 
 import java.io.IOException;
@@ -34,3 +35,4 @@ public class FileLogger {
         }
     }
 }
+*/

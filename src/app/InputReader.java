@@ -2,14 +2,12 @@ package app;
 
 import common.CharCode;
 import context.operation.command.CommandExecutor;
-import log.FileLogger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class InputReader {
 
@@ -18,8 +16,6 @@ public class InputReader {
     private final static Map<Integer, Integer> KEY_REPLACER;
 
     private final static int MAX_SIZE_OF_KEY = 4;
-
-    private final Logger logger = FileLogger.getFileLogger(InputReader.class.getName(), "input-reader-log.txt");
 
     static {
         KEY_REPLACER = new HashMap<>();

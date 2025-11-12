@@ -4,7 +4,6 @@ import app.Application;
 import common.CharCode;
 import common.terminal.Platform;
 import context.operation.state.TerminalWriter;
-import log.FileLogger;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -25,7 +24,6 @@ public class EditorState {
     private final String OUTPUT_STRING = SAVE_CURSOR_POSITION + SET_CURSOR_INVISIBLE + SET_CURSOR_AT_START +
             ERASE_SCREEN + "%s" + RESTORE_CURSOR_POSITION + SET_CURSOR_VISIBLE;
 
-    private final Logger logger = FileLogger.getFileLogger(EditorState.class.getName(), "editor-state.txt");
 
     private int textSize;
 
@@ -42,7 +40,6 @@ public class EditorState {
     }
 
     public void writeInTerminal() {
-        logger.info(getTextData());
         terminalWriter.writeEditorText(OUTPUT_STRING, getTextData());
         terminalWriter.writeCursor(cursorRowIndex, offsetFromTop, cursorColumnIndex);
     }
@@ -239,14 +236,6 @@ public class EditorState {
             result = result.replace("\r", PLATFORM.NEXT_ROW_CHAR);
 
         return result;
-    }
-
-    private void log() {
-        logger.info("cursorRowIndex: " + cursorRowIndex +
-                ", cursorColumnIndex: " + cursorColumnIndex +
-                ", offsetFromTop: " + offsetFromTop +
-                ", height:" + Application.height +
-                ", storage:" + storage.size());
     }
 
     private int getWorkSpaceHeight() {

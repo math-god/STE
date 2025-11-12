@@ -6,7 +6,6 @@ import context.ContextType;
 import context.operation.state.dialog.DialogState;
 import context.operation.state.editor.EditorState;
 import context.operation.state.fileexplorer.FileExplorerState;
-import log.FileLogger;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -25,8 +24,6 @@ public class CommandExecutor {
     private static ContextType context = ContextType.EDITOR;
     private Action action;
     private int undoStep = 0;
-
-    private final Logger logger = FileLogger.getFileLogger(CommandExecutor.class.getName(), "command-executor.txt");
 
     public CommandExecutor(EditorState editorState,
                            FileExplorerState fileExplorerState,

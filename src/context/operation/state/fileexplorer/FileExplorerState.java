@@ -5,7 +5,6 @@ import common.CharCode;
 import common.terminal.Platform;
 import context.operation.state.HeaderBuilder;
 import context.operation.state.TerminalWriter;
-import log.FileLogger;
 
 import java.io.*;
 import java.util.*;
@@ -38,8 +37,6 @@ public class FileExplorerState {
     private Type type;
 
     private String outputString;
-
-    private final Logger logger = FileLogger.getFileLogger(FileExplorerState.class.getName(), "file-explorer-log.txt");
 
     private final TerminalWriter terminalWriter;
 
